@@ -1,11 +1,14 @@
 "use server";
 
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { checkRole, type AuthUser } from "@/lib/access-control";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
 import { courseSchema, CourseSchemaType } from "@/lib/zodSchemas";
 import { request } from "@arcjet/next";
+import { type Division } from "@/lib/generated/prisma";
 
 const aj = arcjet.withRule(
 	fixedWindow({
@@ -16,14 +19,25 @@ const aj = arcjet.withRule(
 );
 
 export async function CreateCourse(
-	values: CourseSchemaType
+	values: CourseSchemaType & { division?: Division }
 ): Promise<ApiResponse> {
-	const session = await requireAdmin();
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+
+	const user = session?.user as AuthUser;
+
+	if (!session || !checkRole(user, "MENTOR")) {
+		return {
+			status: "error",
+			message: "Unauthorized: You do not have permission to create courses.",
+		};
+	}
 
 	try {
 		const req = await request();
 		const decision = await aj.protect(req, {
-			fingerprint: session.user.id,
+			fingerprint: user.id,
 		});
 
 		if (decision.isDenied()) {
@@ -49,10 +63,31 @@ export async function CreateCourse(
 			};
 		}
 
+		let finalDivision: Division;
+
+		if (user.role === "ADMIN") {
+			if (!values.division) {
+				return {
+					status: "error",
+					message: "Division is required for Admins.",
+				};
+			}
+			finalDivision = values.division as Division;
+		} else {
+			if (!user.division) {
+				return {
+					status: "error",
+					message: "Your account is not assigned to any division.",
+				};
+			}
+			finalDivision = user.division;
+		}
+
 		await prisma.course.create({
 			data: {
 				...validation.data,
-				userId: session?.user.id as string,
+				division: finalDivision,
+				userId: user.id,
 			},
 		});
 
@@ -60,7 +95,8 @@ export async function CreateCourse(
 			status: "success",
 			message: "Course created successfully",
 		};
-	} catch {
+	} catch (error) {
+		console.error("Create Course Error:", error);
 		return {
 			status: "error",
 			message: "Failed to Create Course",

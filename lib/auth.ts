@@ -1,9 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./db";
-import { env } from "./env";
-import { admin, emailOTP } from "better-auth/plugins";
-import { resend } from "./resend";
+import { admin } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 
 export const auth = betterAuth({
@@ -12,26 +10,39 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
+		requireEmailVerification: false,
 	},
-	socialProviders: {
-		github: {
-			clientId: env.AUTH_GITHUB_CLIENT_ID,
-			clientSecret: env.AUTH_GITHUB_CLIENT_SECRET,
+
+	user: {
+		additionalFields: {
+			division: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			nim: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			generation: {
+				type: "number",
+				required: false,
+				input: true,
+			},
+			status: {
+				type: "string",
+				defaultValue: "PENDING",
+				input: false,
+			},
 		},
 	},
 
 	plugins: [
-		emailOTP({
-			async sendVerificationOTP({ email, otp }) {
-				await resend.emails.send({
-					from: "CERC LMS <onboarding@resend.dev>",
-					to: [email],
-					subject: "Welcome to CERC LMS.",
-					html: `<p>Your OTP is <strong>${otp}</strong></p>`,
-				});
-			},
+		admin({
+			defaultRole: "GUEST",
+			adminRoles: ["ADMIN"],
 		}),
-		admin(),
 		nextCookies(),
 	],
 });

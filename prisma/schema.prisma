@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -5,6 +6,31 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MENTOR
+  MEMBER
+  USER
+  GUEST
+}
+
+enum Division {
+  SOFTWARE
+  EMBEDDED
+  MULTIMEDIA
+  NETWORKING
+  ARTIFICIAL_INTELLIGENCE
+  CYBER_SECURITY
+  GLOBAL
+}
+
+enum UserStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  ARCHIVED
 }
 
 model User {
@@ -21,7 +47,12 @@ model User {
   enrollment     Enrollment[]
   lessonProgress LessonProgress[]
 
-  role       String?
+  role       Role       @default(GUEST)
+  division   Division?
+  status     UserStatus @default(PENDING)
+  nim        String?    @unique
+  generation Int?
+
   banned     Boolean?  @default(false)
   banReason  String?
   banExpires DateTime?
@@ -45,6 +76,7 @@ model Session {
 
   @@unique([token])
   @@map("session")
+  @@index([userId])
 }
 
 model Account {
@@ -64,6 +96,7 @@ model Account {
   updatedAt             DateTime  @updatedAt
 
   @@map("account")
+  @@index([userId])
 }
 
 model Verification {
@@ -75,6 +108,7 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+  @@index([identifier])
 }
 
 model Course {
@@ -85,12 +119,13 @@ model Course {
   fileKey     String
   duration    Int
   level       CourseLevel @default(Beginner)
+  category    String
 
-  category         String
+  division Division
+
   smallDescription String
-  slug             String @unique
-
-  status CourseStatus @default(Draft)
+  slug             String       @unique
+  status           CourseStatus @default(Draft)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -11,107 +11,101 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { GithubIcon, Loader, Loader2, Send } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function LoginForm() {
 	const router = useRouter();
-	const [githubPending, startGithubTransition] = useTransition();
-	const [emailPending, startEmailTransition] = useTransition();
+	const [pending, setPending] = useState(false);
 	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
-	async function signInWithGithub() {
-		startGithubTransition(async () => {
-			await authClient.signIn.social({
-				provider: "github",
-				callbackURL: "/",
-				fetchOptions: {
-					onSuccess: () => {
-						toast.success("Signed in with Github, you will be redirected...");
-					},
-					onError: () => {
-						toast.error("Internal Server Error");
-					},
-				},
-			});
-		});
-	}
+	async function handleSignIn(e: React.FormEvent) {
+		e.preventDefault();
+		setPending(true);
 
-	function signInWithEmail() {
-		startEmailTransition(async () => {
-			await authClient.emailOtp.sendVerificationOtp({
-				email: email,
-				type: "sign-in",
-				fetchOptions: {
-					onSuccess: () => {
-						toast.success("Email sent");
-						router.push(`/verify-request?email=${email}`);
-					},
-					onError: () => {
-						toast.error("Error sending email");
-					},
-				},
+		try {
+			const { error } = await authClient.signIn.email({
+				email,
+				password,
+				callbackURL: "/dashboard",
 			});
-		});
+
+			if (error) {
+				if (error.code === "INVALID_EMAIL_OR_PASSWORD") {
+					toast.error("Email atau password salah");
+				} else {
+					toast.error(error.message || "Gagal login");
+				}
+				setPending(false);
+			} else {
+				toast.success("Login berhasil");
+				router.push("/dashboard");
+			}
+		} catch {
+			toast.error("Terjadi kesalahan koneksi");
+			setPending(false);
+		}
 	}
 
 	return (
-		<Card>
+		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle className="text-xl">Welcome Back!</CardTitle>
-				<CardDescription>Login with your Github Email Account</CardDescription>
+				<CardTitle className="text-xl">Login CERC LMS</CardTitle>
+				<CardDescription>Masuk menggunakan akun CERC Anda</CardDescription>
 			</CardHeader>
-			<CardContent className="flex flex-col gap-4">
-				<Button
-					disabled={githubPending}
-					onClick={signInWithGithub}
-					className="w-full"
-					variant="outline"
-				>
-					{githubPending ? (
-						<>
-							<Loader className="size-4 animate-spin" />
-							<span>Loading...</span>
-						</>
-					) : (
-						<>
-							<GithubIcon className="size-4" />
-							Sign in with Github
-						</>
-					)}
-				</Button>
-				<div className="relative text-sm text-center after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-					<span className="relative z-10 px-2 bg-card text-muted-foreground">
-						Or continue with
-					</span>
-				</div>
-
-				<div className="grid gap-3">
+			<CardContent>
+				<form onSubmit={handleSignIn} className="grid gap-4">
 					<div className="grid gap-2">
 						<Label htmlFor="email">Email</Label>
 						<Input
+							id="email"
+							type="email"
+							placeholder="nama@email.com"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
-							type="email"
-							placeholder="test@example.com"
 							required
+							disabled={pending}
 						/>
 					</div>
-					<Button onClick={signInWithEmail} disabled={emailPending}>
-						{emailPending ? (
+					<div className="grid gap-2">
+						<div className="flex items-center justify-between">
+							<Label htmlFor="password">Password</Label>
+						</div>
+						<Input
+							id="password"
+							type="password"
+							placeholder="******"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							required
+							disabled={pending}
+						/>
+					</div>
+
+					<Button type="submit" className="w-full" disabled={pending}>
+						{pending ? (
 							<>
-								<Loader2 className="size-4 animate-spin" />
-								<span>Loading...</span>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Memproses...
 							</>
 						) : (
-							<>
-								<Send className="size-4" />
-								<span>Continue with Email</span>
-							</>
+							"Login"
 						)}
 					</Button>
+				</form>
+
+				<div className="mt-4 text-center text-sm text-muted-foreground">
+					Belum punya akun?{" "}
+					<Link
+						href="/register"
+						className="text-primary underline hover:text-primary/80"
+					>
+						Daftar Anggota Baru
+					</Link>
 				</div>
 			</CardContent>
 		</Card>

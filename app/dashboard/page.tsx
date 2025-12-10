@@ -15,7 +15,7 @@ export default async function DashboardPage() {
 			<div className="flex flex-col gap-2">
 				<h1 className="text-3xl font-bold">Enrolled Courses</h1>
 				<p className="text-muted-foreground">
-					Here you can see all the courses you have access to
+					Here you can see all the courses you have access to.
 				</p>
 			</div>
 
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
 				<div className="flex flex-col gap-2 mb-4">
 					<h1 className="text-3xl font-bold">Available Courses</h1>
 					<p className="text-muted-foreground">
-						Here you can see all the courses you can purchase
+						Here you can see all the courses you can purchase.
 					</p>
 				</div>
 
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
 				).length === 0 ? (
 					<EmptyState
 						title="No courses available"
-						description="You have already purchases all availabel courses"
+						description="You have already purchased all available courses or there are no new courses in your division."
 						buttonText="Browse courses"
 						href="/courses"
 					/>

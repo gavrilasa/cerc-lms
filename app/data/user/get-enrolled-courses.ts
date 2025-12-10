@@ -1,15 +1,30 @@
 import "server-only";
 import { requireUser } from "./require-user";
 import prisma from "@/lib/db";
+import { Prisma } from "@/lib/generated/prisma";
+import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export async function getEnrolledCourses() {
-	const user = await requireUser();
+	const sessionUser = await requireUser();
+	const user = sessionUser as AuthUser;
+
+	const whereClause: Prisma.EnrollmentWhereInput = {
+		userId: user.id,
+		status: "Active",
+	};
+
+	if (!checkRole(user, "ADMIN")) {
+		if (user.division) {
+			whereClause.course = {
+				division: user.division,
+			};
+		} else {
+			return [];
+		}
+	}
 
 	const data = await prisma.enrollment.findMany({
-		where: {
-			userId: user.id,
-			status: "Active",
-		},
+		where: whereClause,
 		select: {
 			course: {
 				select: {

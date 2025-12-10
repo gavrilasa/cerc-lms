@@ -4,6 +4,7 @@ import {
 	PublicCourseCardSkeleton,
 } from "../_components/PublicCourseCard";
 import { Suspense } from "react";
+import { EmptyState } from "@/components/general/EmptyState";
 
 export default function PublicCoursesRoute() {
 	return (
@@ -13,8 +14,7 @@ export default function PublicCoursesRoute() {
 					Explore Courses
 				</h1>
 				<p className="text-muted-foreground">
-					Discover our wide range of courses designed to help you achieve your
-					learning goals.
+					Discover courses tailored for your division.
 				</p>
 			</div>
 			<Suspense fallback={<LoadingSkeletonLayout />}>
@@ -26,6 +26,19 @@ export default function PublicCoursesRoute() {
 
 async function RenderCourses() {
 	const courses = await getAllCourses();
+
+	if (courses.length === 0) {
+		return (
+			<div className="col-span-full">
+				<EmptyState
+					title="No Courses Found"
+					description="There are no courses available for your division yet, or you need to login."
+					buttonText="Back to Home"
+					href="/"
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
