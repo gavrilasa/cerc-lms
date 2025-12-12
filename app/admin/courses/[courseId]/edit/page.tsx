@@ -9,12 +9,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditCourseForm } from "./_components/EditCourseForm";
 import { CourseStructure } from "./_components/CourseStructure";
+import { requireUser } from "@/app/data/user/require-user";
+import { redirect } from "next/navigation";
 
 type Params = Promise<{ courseId: string }>;
 
 export default async function EditRoute({ params }: { params: Params }) {
 	const { courseId } = await params;
 	const data = await adminGetCourse(courseId);
+	const user = await requireUser();
+
+	if (!user.role) {
+		redirect("/not-admin");
+	}
 
 	return (
 		<div>
@@ -37,7 +44,7 @@ export default async function EditRoute({ params }: { params: Params }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<EditCourseForm data={data} />
+							<EditCourseForm data={data} userRole={user.role} />
 						</CardContent>
 					</Card>
 				</TabsContent>

@@ -10,9 +10,14 @@ import { Suspense } from "react";
 
 export default function CoursesPage() {
 	return (
-		<>
+		<div className="p-4 space-y-4">
 			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold">Your Courses</h1>
+				<div className="flex flex-col gap-1">
+					<h1 className="text-2xl font-bold">Courses Management</h1>
+					<p className="text-muted-foreground">
+						Kelola course, chapter dan lesson (Buat baru, Edit, Hapus)
+					</p>
+				</div>
 				<Link className={buttonVariants()} href="/admin/courses/create">
 					Create Course
 				</Link>
@@ -21,7 +26,7 @@ export default function CoursesPage() {
 			<Suspense fallback={<AdminCourseCardSkeletonLayout />}>
 				<RenderCourses />
 			</Suspense>
-		</>
+		</div>
 	);
 }
 

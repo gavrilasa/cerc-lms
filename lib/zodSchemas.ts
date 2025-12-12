@@ -15,6 +15,15 @@ export const courseCategories = [
 	"Music",
 	"Teaching & Academics",
 ] as const;
+export const divisions = [
+	"SOFTWARE",
+	"EMBEDDED",
+	"MULTIMEDIA",
+	"NETWORKING",
+	"ARTIFICIAL_INTELLIGENCE",
+	"CYBER_SECURITY",
+	"GLOBAL",
+] as const;
 
 export const courseSchema = z.object({
 	title: z
@@ -24,13 +33,14 @@ export const courseSchema = z.object({
 	description: z
 		.string()
 		.min(3, { message: "Description must be at least 3 characters long" }),
-	fileKey: z.string().min(1, { message: "File key cannot be empty" }),
 	duration: z
 		.number()
 		.min(1, { message: "Duration must be at least 1 hour" })
 		.max(500, { message: "Duration cannot exceed 500 hours" }),
 	level: z.enum(courseLevels, { message: "Level is required" }),
 	category: z.enum(courseCategories, { message: "Category is Required" }),
+	fileKey: z.string().min(1, { message: "File key cannot be empty" }),
+	division: z.enum(divisions).optional(),
 	smallDescription: z
 		.string()
 		.min(1, { message: "Small description cannot be empty" })

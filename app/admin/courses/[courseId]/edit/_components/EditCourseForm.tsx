@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-
 import {
 	courseSchema,
 	CourseSchemaType,
 	courseLevels,
 	courseStatus,
 	courseCategories,
+	divisions, // Import divisions
 } from "@/lib/zodSchemas";
 import { Loader2, PlusIcon, SparkleIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -39,11 +39,15 @@ import { useRouter } from "next/navigation";
 import { editCourse } from "../actions";
 import { AdminCourseSingularType } from "@/app/data/admin/admin-get-course";
 
-interface iAppProps {
+interface EditCourseFormProps {
 	data: AdminCourseSingularType;
+	userRole?: string;
 }
 
-export function EditCourseForm({ data }: iAppProps) {
+export function EditCourseForm({
+	data,
+	userRole = "GUEST",
+}: EditCourseFormProps) {
 	const [pending, startTransition] = useTransition();
 	const router = useRouter();
 
@@ -59,6 +63,7 @@ export function EditCourseForm({ data }: iAppProps) {
 			smallDescription: data.smallDescription,
 			slug: data.slug,
 			status: data.status,
+			division: data.division,
 		},
 	});
 
@@ -70,33 +75,66 @@ export function EditCourseForm({ data }: iAppProps) {
 
 			if (error) {
 				toast.error("An unexpected error occured. Please try again");
+				return;
 			}
 
 			if (result?.status === "success") {
-				toast.message(result?.message);
-				form.reset();
+				toast.success(result?.message);
 				router.push("/admin/courses");
+				router.refresh();
 			} else if (result?.status === "error") {
 				toast.error(result?.message);
 			}
 		});
 	}
+
 	return (
 		<Form {...form}>
 			<form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-				<FormField
-					control={form.control}
-					name="title"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Title</FormLabel>
-							<FormControl>
-								<Input placeholder="Title" {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
+				<div className="flex gap-4 items-end">
+					<FormField
+						control={form.control}
+						name="title"
+						render={({ field }) => (
+							<FormItem className="w-full">
+								<FormLabel>Title</FormLabel>
+								<FormControl>
+									<Input placeholder="Title" {...field} />
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					{userRole === "ADMIN" && (
+						<FormField
+							control={form.control}
+							name="division"
+							render={({ field }) => (
+								<FormItem className="w-full">
+									<FormLabel>Division (Admin Override)</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger className="w-full">
+												<SelectValue placeholder="Select Division" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{divisions.map((div) => (
+												<SelectItem key={div} value={div}>
+													{div}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 					)}
-				/>
+				</div>
 
 				<div className="flex gap-4 items-end">
 					<FormField
@@ -118,7 +156,7 @@ export function EditCourseForm({ data }: iAppProps) {
 						className="w-fit"
 						onClick={() => {
 							const titleValue = form.getValues("title");
-							const slug = slugify(titleValue);
+							const slug = slugify(titleValue || "", { lower: true });
 							form.setValue("slug", slug, { shouldValidate: true });
 						}}
 					>
@@ -233,41 +271,53 @@ export function EditCourseForm({ data }: iAppProps) {
 					<FormField
 						control={form.control}
 						name="duration"
-						render={({ field }) => (
+						render={({ field: { value, onChange, ...field } }) => (
 							<FormItem className="w-full">
 								<FormLabel>Duration (hours)</FormLabel>
 								<FormControl>
-									<Input placeholder="Duration" type="number" {...field} />
+									<Input
+										placeholder="Duration"
+										type="number"
+										value={value || ""}
+										onChange={(e) => {
+											const numValue = e.target.valueAsNumber;
+											onChange(isNaN(numValue) ? 0 : numValue);
+										}}
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
-				</div>
 
-				<FormField
-					control={form.control}
-					name="status"
-					render={({ field }) => (
-						<FormItem className="w-full">
-							<FormLabel>Status</FormLabel>
-							<Select onValueChange={field.onChange} defaultValue={field.value}>
-								<FormControl>
-									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Select Status" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									{courseStatus.map((status) => (
-										<SelectItem key={status} value={status}>
-											{status}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</FormItem>
-					)}
-				/>
+					<FormField
+						control={form.control}
+						name="status"
+						render={({ field }) => (
+							<FormItem className="w-full">
+								<FormLabel>Status</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									defaultValue={field.value}
+								>
+									<FormControl>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Select Status" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										{courseStatus.map((status) => (
+											<SelectItem key={status} value={status}>
+												{status}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</FormItem>
+						)}
+					/>
+				</div>
 
 				<Button type="submit" disabled={pending}>
 					{pending ? (

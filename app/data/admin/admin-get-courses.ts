@@ -42,6 +42,7 @@ export async function adminGetCourses() {
 			status: true,
 			fileKey: true,
 			slug: true,
+			curriculumOrder: true,
 		},
 	});
 

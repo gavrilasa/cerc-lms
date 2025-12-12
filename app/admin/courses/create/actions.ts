@@ -19,7 +19,7 @@ const aj = arcjet.withRule(
 );
 
 export async function CreateCourse(
-	values: CourseSchemaType & { division?: Division }
+	values: CourseSchemaType
 ): Promise<ApiResponse> {
 	const session = await auth.api.getSession({
 		headers: await headers(),
@@ -66,13 +66,13 @@ export async function CreateCourse(
 		let finalDivision: Division;
 
 		if (user.role === "ADMIN") {
-			if (!values.division) {
+			if (!validation.data.division) {
 				return {
 					status: "error",
 					message: "Division is required for Admins.",
 				};
 			}
-			finalDivision = values.division as Division;
+			finalDivision = validation.data.division;
 		} else {
 			if (!user.division) {
 				return {

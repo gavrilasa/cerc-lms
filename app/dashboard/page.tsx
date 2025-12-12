@@ -1,74 +1,40 @@
-import { EmptyState } from "@/components/general/EmptyState";
-import { getAllCourses } from "../data/course/get-all-courses";
-import { getEnrolledCourses } from "../data/user/get-enrolled-courses";
-import { PublicCourseCard } from "../(public)/_components/PublicCourseCard";
-import { CourseProgressCard } from "./_components/CourseProgressCard";
+import { requireUser } from "@/app/data/user/require-user";
+import { getCurriculumProgress } from "@/app/data/curriculum/get-user-progress";
+import prisma from "@/lib/db";
+import { DashboardView } from "./_components/DashboardView";
 
 export default async function DashboardPage() {
-	const [courses, enrolledCourses] = await Promise.all([
-		getAllCourses(),
-		getEnrolledCourses(),
-	]);
+	// 1. Authentication Check
+	const sessionUser = await requireUser();
 
-	return (
-		<>
-			<div className="flex flex-col gap-2">
-				<h1 className="text-3xl font-bold">Enrolled Courses</h1>
+	// 2. Fetch User Division (Pastikan data terbaru dari DB)
+	const user = await prisma.user.findUnique({
+		where: {
+			id: sessionUser.id,
+		},
+		select: {
+			division: true,
+		},
+	});
+
+	// Handle jika user tidak memiliki divisi (Edge Case)
+	if (!user || !user.division) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+				<h2 className="text-xl font-semibold">Divisi Belum Ditentukan</h2>
 				<p className="text-muted-foreground">
-					Here you can see all the courses you have access to.
+					Akun Anda belum masuk ke dalam divisi manapun. Hubungi admin.
 				</p>
 			</div>
+		);
+	}
 
-			{enrolledCourses.length === 0 ? (
-				<EmptyState
-					title="No courses purchased"
-					description="You have not purchased any courses yet"
-					buttonText="Browse Courses"
-					href="/courses"
-				/>
-			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{enrolledCourses.map((course) => (
-						<CourseProgressCard data={course} key={course.course.id} />
-					))}
-				</div>
-			)}
-
-			<section className="mt-10">
-				<div className="flex flex-col gap-2 mb-4">
-					<h1 className="text-3xl font-bold">Available Courses</h1>
-					<p className="text-muted-foreground">
-						Here you can see all the courses you can purchase.
-					</p>
-				</div>
-
-				{courses.filter(
-					(course) =>
-						!enrolledCourses.some(
-							({ course: enrolled }) => enrolled.id === course.id
-						)
-				).length === 0 ? (
-					<EmptyState
-						title="No courses available"
-						description="You have already purchased all available courses or there are no new courses in your division."
-						buttonText="Browse courses"
-						href="/courses"
-					/>
-				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-						{courses
-							.filter(
-								(course) =>
-									!enrolledCourses.some(
-										({ course: enrolled }) => enrolled.id === course.id
-									)
-							)
-							.map((course) => (
-								<PublicCourseCard key={course.id} data={course} />
-							))}
-					</div>
-				)}
-			</section>
-		</>
+	// 3. Panggil Logic Core (DAL) untuk hitung status kurikulum
+	const progressData = await getCurriculumProgress(
+		sessionUser.id,
+		user.division
 	);
+
+	// 4. Render Client View dengan data matang
+	return <DashboardView data={progressData} />;
 }
