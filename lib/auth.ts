@@ -35,6 +35,17 @@ export const auth = betterAuth({
 				defaultValue: "PENDING",
 				input: false,
 			},
+			selectedCurriculumId: {
+				type: "string",
+				required: false,
+				input: false,
+			},
+			curriculumStatus: {
+				type: "string",
+				required: false,
+				defaultValue: "IN_PROGRESS",
+				input: false,
+			},
 		},
 	},
 

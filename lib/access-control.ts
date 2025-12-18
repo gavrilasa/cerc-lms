@@ -1,5 +1,5 @@
 import { type User } from "better-auth/types";
-import type { Division, Role } from "./generated/prisma";
+import type { Division, Role } from "./generated/prisma/enums";
 
 export interface AuthUser extends User {
 	role: Role;
@@ -7,6 +7,8 @@ export interface AuthUser extends User {
 	status?: string;
 	nim?: string;
 	generation?: number;
+	selectedCurriculumId?: string | null;
+	curriculumStatus?: string | null;
 }
 
 const ROLE_LEVELS: Record<Role, number> = {

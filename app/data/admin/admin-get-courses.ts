@@ -4,7 +4,7 @@ import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export async function adminGetCourses() {
@@ -42,6 +42,7 @@ export async function adminGetCourses() {
 			status: true,
 			fileKey: true,
 			slug: true,
+			division: true,
 		},
 	});
 

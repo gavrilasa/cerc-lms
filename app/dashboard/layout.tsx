@@ -1,9 +1,35 @@
+import "server-only";
+
 import { AppSidebar } from "./_components/DashboardAppSidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
+import { requireUser } from "@/app/data/user/require-user";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/db";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({
+	children,
+}: {
+	children: ReactNode;
+}) {
+	const user = await requireUser();
+
+	if (user.status === "VERIFIED") {
+		if (!user.selectedCurriculumId) {
+			redirect("/select-curriculum");
+		}
+
+		const curriculum = await prisma.curriculum.findUnique({
+			where: { id: user.selectedCurriculumId },
+			select: { status: true },
+		});
+
+		if (!curriculum || curriculum.status === "ARCHIVED") {
+			redirect("/select-curriculum");
+		}
+	}
+
 	return (
 		<SidebarProvider
 			style={

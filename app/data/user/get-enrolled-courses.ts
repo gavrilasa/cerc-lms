@@ -1,7 +1,7 @@
 import "server-only";
 import { requireUser } from "./require-user";
 import prisma from "@/lib/db";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export async function getEnrolledCourses() {

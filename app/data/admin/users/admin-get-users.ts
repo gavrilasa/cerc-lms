@@ -1,11 +1,8 @@
 import "server-only";
 
 import prisma from "@/lib/db";
-import {
-	type UserStatus,
-	type Division,
-	type Prisma,
-} from "@/lib/generated/prisma";
+import type { Prisma } from "@/lib/generated/prisma/client";
+import type { UserStatus, Division } from "@/lib/generated/prisma/enums";
 import { requireAdmin } from "../require-admin";
 
 export async function getUsers(

@@ -5,7 +5,7 @@ import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { checkRole, type AuthUser } from "@/lib/access-control";
-import { type Role, type UserStatus } from "@/lib/generated/prisma"; // Pastikan import dari generated
+import type { Role, UserStatus } from "@/lib/generated/prisma/enums";
 
 // Helper untuk validasi sesi admin (DRY)
 async function validateAdmin() {

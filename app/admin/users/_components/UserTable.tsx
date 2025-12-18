@@ -20,11 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserActions } from "./UserActions";
-import {
-	type Division,
-	type UserStatus,
-	type Role,
-} from "@/lib/generated/prisma";
+import type { Division, UserStatus, Role } from "@/lib/generated/prisma/enums";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { DivisionBadge } from "@/components/general/DivisionBadge";

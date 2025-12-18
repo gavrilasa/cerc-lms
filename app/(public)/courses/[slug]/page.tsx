@@ -1,271 +1,224 @@
 import { getIndividualCourse } from "@/app/data/course/get-course";
+import { getUserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details";
+import { requireUser } from "@/app/data/user/require-user";
+import { EnrollmentButton } from "./_components/EnrollmentButton";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { BookOpen, Clock, Signal, Video, Lock } from "lucide-react";
 import Image from "next/image";
 import { env } from "@/lib/env";
-import { Badge } from "@/components/ui/badge";
-import {
-	IconBook,
-	IconCategory,
-	IconChartBar,
-	IconChevronDown,
-	IconClock,
-	IconPlayerPlay,
-} from "@tabler/icons-react";
-import { Separator } from "@/components/ui/separator";
-import { RenderDescription } from "@/components/rich-text-editor/RenderDescription";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckIcon } from "lucide-react";
-import { checkIfCourseBought } from "@/app/data/user/user-is-enrolled";
 import Link from "next/link";
-import { EnrollmentButton } from "./_components/EnrollmentButton";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
-type Params = Promise<{ slug: string }>;
-
-export default async function SlugPage({ params }: { params: Params }) {
+export default async function CoursePage({
+	params,
+}: {
+	params: Promise<{ slug: string }>;
+}) {
 	const { slug } = await params;
+
+	// 1. Ambil Data User & Course Dasar
+	const user = await requireUser();
 	const course = await getIndividualCourse(slug);
-	const isEnrolled = await checkIfCourseBought(course.id);
+
+	// 2. Ambil Detail Dashboard User (Single Source of Truth)
+	const dashboardData = await getUserCurriculumDetails(user.id);
+
+	// 3. Tentukan Status Akses & Pesan Lock
+	let isLocked = false;
+	let lockedMessage = "";
+	let isInCurriculum = false;
+
+	if (!dashboardData) {
+		// Edge Case: User belum pilih kurikulum
+		isLocked = true;
+		lockedMessage = "Anda belum memilih kurikulum.";
+	} else {
+		// Cek di Core Courses
+		const coreIndex = dashboardData.coreCourses.findIndex(
+			(c) => c.id === course.id
+		);
+
+		if (coreIndex !== -1) {
+			isInCurriculum = true;
+			const coreCourse = dashboardData.coreCourses[coreIndex];
+			isLocked = coreCourse.isLocked;
+
+			if (isLocked) {
+				// Logic Pesan: Cari course sebelumnya
+				if (coreIndex > 0) {
+					const prevCourse = dashboardData.coreCourses[coreIndex - 1];
+					lockedMessage = `Selesaikan "${prevCourse.title}" untuk membuka materi ini.`;
+				} else {
+					lockedMessage = "Selesaikan materi sebelumnya dalam roadmap.";
+				}
+			}
+		} else {
+			// Cek di Elective Courses
+			const electiveCourse = dashboardData.electiveCourses.find(
+				(c) => c.id === course.id
+			);
+
+			if (electiveCourse) {
+				isInCurriculum = true;
+				isLocked = electiveCourse.isLocked;
+				if (isLocked) {
+					lockedMessage =
+						"Selesaikan seluruh Kurikulum Wajib (Core) untuk membuka materi pengayaan ini.";
+				}
+			}
+		}
+	}
+
+	// Jika course tidak ada di kurikulum user sama sekali (Cross-curriculum browsing prevention)
+	if (dashboardData && !isInCurriculum) {
+		return (
+			<div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
+				<Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+				<h1 className="text-2xl font-bold">Akses Dibatasi</h1>
+				<p className="text-muted-foreground">
+					Course ini tidak tersedia dalam kurikulum{" "}
+					<strong>{dashboardData.curriculumInfo.title}</strong> yang Anda ambil.
+				</p>
+				<Button asChild className="mt-4">
+					<Link href="/dashboard">Kembali ke Dashboard</Link>
+				</Button>
+			</div>
+		);
+	}
 
 	return (
-		<div className="grid grid-cols-1 gap-8 lg:grid-cols-3 mt-5">
-			<div className="order-1 lg:col-span-2">
-				<div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-lg">
-					<Image
-						src={`https://${env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES}.t3.storage.dev/${course.fileKey}`}
-						alt={course.title}
-						fill
-						className="object-cover"
-						priority
-					/>
-					<div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
-				</div>
-
-				<div className="mt-8 space-y-6">
+		<section className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+				{/* === Left Column: Course Details === */}
+				<div className="lg:col-span-2 space-y-8">
 					<div className="space-y-4">
-						<h1 className="text-4xl font-bold tracking-tight">
+						<h1 className="text-3xl md:text-4xl font-bold text-foreground">
 							{course.title}
 						</h1>
-						<p className="text-lg text-muted-foreground leading-relaxed line-clamp-2">
+						<p className="text-muted-foreground text-lg">
 							{course.smallDescription}
 						</p>
-					</div>
 
-					<div className="flex flex-wrap gap-3">
-						<Badge className="flex items-center gap-1 px-3 py-1">
-							<IconChartBar className="size-4" />
-							<span>{course.level}</span>
-						</Badge>
-						<Badge className="flex items-center gap-1 px-3 py-1">
-							<IconCategory className="size-4" />
-							<span>{course.category}</span>
-						</Badge>
-						<Badge className="flex items-center gap-1 px-3 py-1">
-							<IconClock className="size-4" />
-							<span>{course.duration} hours</span>
-						</Badge>
-					</div>
-
-					<Separator className="my-8" />
-
-					<div className="space-y-6">
-						<h2 className="text-3xl font-semibold tracking-tight">
-							Course Description
-						</h2>
-						<RenderDescription json={JSON.parse(course.description)} />
-					</div>
-				</div>
-
-				<div className="mt-12 space-y-6">
-					<div className="flex items-center justify-between">
-						<h2 className="text-3xl font-semibold tracking-tight">
-							Course Content
-						</h2>
-						<div>
-							{course.chapter.length} Chapters |{" "}
-							{course.chapter.reduce(
-								(total, chapter) => total + chapter.lessons.length,
-								0
-							) || 0}{" "}
-							Lessons
+						<div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+							<div className="flex items-center gap-1">
+								<Signal className="h-4 w-4" />
+								<span>{course.level}</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<Clock className="h-4 w-4" />
+								<span>{Math.round(course.duration / 60)} Jam</span>
+							</div>
+							<div className="flex items-center gap-1">
+								<BookOpen className="h-4 w-4" />
+								<span>{course.category}</span>
+							</div>
 						</div>
 					</div>
 
-					<div className="space-y-4">
-						{course.chapter.map((chapter, index) => (
-							<Collapsible key={chapter.id} defaultOpen={index == 0}>
-								<Card className="p-0 overflow-hidden border-2 transition-all duration-200 hover:shadow-md gap-0">
-									<CollapsibleTrigger>
-										<div>
-											<CardContent className="p-6 hover:bg-muted/50 transition-colors">
-												<div className="flex items-center justify-between">
-													<div className="flex items-center gap-4">
-														<p className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
-															{index + 1}
-														</p>
-														<div>
-															<h3 className="text-xl font-semibold text-left">
-																{chapter.title}
-															</h3>
-															<p className="text-sm text-muted-foreground mt-1 text-left">
-																{chapter.lessons.length} lesson
-																{chapter.lessons.length !== 1 ? "s" : ""}
-															</p>
-														</div>
-													</div>
-													<div className="flex items-center gap-3">
-														<Badge variant={"outline"} className="text-xs">
-															{chapter.lessons.length} lesson
-															{chapter.lessons.length !== 1 ? "s" : ""}
-														</Badge>
-														<IconChevronDown className="size-5 text-muted-foreground" />
-													</div>
-												</div>
-											</CardContent>
-										</div>
-									</CollapsibleTrigger>
-									<CollapsibleContent>
-										<div className="border-t bg-muted/20">
-											<div className="p-6 pt-4 space-y-3">
-												{chapter.lessons.map((lesson, lessonIndex) => (
-													<div
-														key={lesson.id}
-														className="flex items-center gap-4 rounded-lg p-3 hover:bg-accent transition-colors group"
-													>
-														<div className="flex size-8 items-center justify-center rounded-full bg-background border-2 border-primary/20">
-															<IconPlayerPlay className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
-														</div>
+					<Separator />
 
-														<div className="flex-1">
-															<p className="font-medium text-sm">
-																{lesson.title}
-															</p>
-															<p className="text-xs text-muted-foreground mt-1">
-																Lesson {lessonIndex + 1}
-															</p>
-														</div>
-													</div>
-												))}
-											</div>
-										</div>
-									</CollapsibleContent>
+					<div className="prose max-w-none dark:prose-invert">
+						<h3 className="text-xl font-semibold mb-4">Deskripsi Kursus</h3>
+						<div
+							dangerouslySetInnerHTML={{
+								__html: JSON.parse(course.description).content || "",
+							}}
+						/>
+					</div>
+
+					<div className="space-y-4">
+						<h3 className="text-xl font-semibold">Materi Pembelajaran</h3>
+						<div className="grid gap-4">
+							{course.chapter.map((chapter) => (
+								<Card key={chapter.id}>
+									<CardHeader className="py-4">
+										<CardTitle className="text-lg flex items-center gap-2">
+											<span className="bg-primary/10 text-primary p-1 rounded">
+												<Video className="h-4 w-4" />
+											</span>
+											{chapter.title}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="pb-4 pt-0">
+										<ul className="space-y-2">
+											{chapter.lessons.map((lesson) => (
+												<li
+													key={lesson.id}
+													className="flex items-center gap-2 text-sm text-muted-foreground ml-8"
+												>
+													<div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+													{lesson.title}
+												</li>
+											))}
+										</ul>
+									</CardContent>
 								</Card>
-							</Collapsible>
-						))}
+							))}
+						</div>
+					</div>
+				</div>
+
+				{/* === Right Column: Enrollment Card === */}
+				<div className="lg:col-span-1">
+					<div className="sticky top-24">
+						<Card className="overflow-hidden border-2 shadow-lg">
+							{course.fileKey && (
+								<div className="relative aspect-video w-full overflow-hidden bg-muted">
+									<Image
+										src={`https://${env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES}.t3.storage.dev/${course.fileKey}`}
+										alt={course.title}
+										fill
+										className="object-cover"
+										priority
+									/>
+								</div>
+							)}
+
+							<CardContent className="p-6 space-y-6">
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<span className="font-semibold text-lg">Gratis</span>
+										<Badge variant="secondary">{course.category}</Badge>
+									</div>
+									<p className="text-sm text-muted-foreground">
+										Akses penuh ke seluruh materi dan kuis
+									</p>
+								</div>
+
+								<EnrollmentButton
+									courseId={course.id}
+									isLocked={isLocked}
+									lockedMessage={lockedMessage}
+								/>
+
+								<div className="space-y-3 pt-4 border-t">
+									<h4 className="font-medium text-sm">Course ini mencakup:</h4>
+									<ul className="space-y-2 text-sm text-muted-foreground">
+										<li className="flex items-center gap-2">
+											<Video className="h-4 w-4" />
+											{course.chapter.reduce(
+												(acc, c) => acc + c.lessons.length,
+												0
+											)}{" "}
+											Pelajaran
+										</li>
+										<li className="flex items-center gap-2">
+											<Clock className="h-4 w-4" />
+											Akses selamanya
+										</li>
+										<li className="flex items-center gap-2">
+											<Signal className="h-4 w-4" />
+											Level {course.level}
+										</li>
+									</ul>
+								</div>
+							</CardContent>
+						</Card>
 					</div>
 				</div>
 			</div>
-
-			{/* Enrollment Card */}
-			<div className="order-2 lg:col-span-1">
-				<div className="sticky top-20">
-					<Card className="py-0">
-						<CardContent className="p-6">
-							<div className="mb-6 space-y-3 rounded-lg bg-muted p-4">
-								<h4 className="font-medium">What you will get:</h4>
-								<div className="flex flex-col gap-3">
-									<div className="flex items-center gap-3">
-										<div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-											<IconClock className="size-4" />
-										</div>
-										<div>
-											<p className="text-sm font-medium">Course Duration</p>
-											<p className="text-sm text-muted-foreground">
-												{course.duration} hours
-											</p>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex flex-col gap-3">
-									<div className="flex items-center gap-3">
-										<div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-											<IconChartBar className="size-4" />
-										</div>
-										<div>
-											<p className="text-sm font-medium">Course Level</p>
-											<p className="text-sm text-muted-foreground">
-												{course.level}
-											</p>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex flex-col gap-3">
-									<div className="flex items-center gap-3">
-										<div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-											<IconCategory className="size-4" />
-										</div>
-										<div>
-											<p className="text-sm font-medium">Course Category</p>
-											<p className="text-sm text-muted-foreground">
-												{course.category}
-											</p>
-										</div>
-									</div>
-								</div>
-
-								<div className="flex flex-col gap-3">
-									<div className="flex items-center gap-3">
-										<div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-											<IconBook className="size-4" />
-										</div>
-										<div>
-											<p className="text-sm font-medium">Total Lessons</p>
-											<p className="text-sm text-muted-foreground">
-												{course.chapter.reduce(
-													(total, chapter) => total + chapter.lessons.length,
-													0
-												) || 0}{" "}
-												Lessons
-											</p>
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<div className="mb-6 space-y-3">
-								<h4>This course includes: </h4>
-								<ul className="space-y-2">
-									<li className="flex items-center gap-2 text-sm">
-										<div className="rounded-full bg-green-500/10 text-green-500 p-1">
-											<CheckIcon className="size-3" />
-										</div>
-										<span>Full lifetime access</span>
-									</li>
-									<li className="flex items-center gap-2 text-sm">
-										<div className="rounded-full bg-green-500/10 text-green-500 p-1">
-											<CheckIcon className="size-3" />
-										</div>
-										<span>Access on mobile and desktop</span>
-									</li>
-									<li className="flex items-center gap-2 text-sm">
-										<div className="rounded-full bg-green-500/10 text-green-500 p-1">
-											<CheckIcon className="size-3" />
-										</div>
-										<span>Certificate of completion</span>
-									</li>
-								</ul>
-							</div>
-
-							{isEnrolled ? (
-								<Link
-									className={buttonVariants({ className: "w-full" })}
-									href={"/dashboard"}
-								>
-									Watch Course
-								</Link>
-							) : (
-								<EnrollmentButton courseId={course.id} />
-							)}
-						</CardContent>
-					</Card>
-				</div>
-			</div>
-		</div>
+		</section>
 	);
 }

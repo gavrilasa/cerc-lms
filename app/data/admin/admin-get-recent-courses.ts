@@ -20,6 +20,7 @@ export async function adminGetRecentCourses() {
 			status: true,
 			fileKey: true,
 			slug: true,
+			division: true,
 		},
 	});
 

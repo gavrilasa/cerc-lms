@@ -12,7 +12,6 @@ import {
 	IconListDetails,
 	IconSearch,
 	IconSettings,
-	IconUsers,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -43,19 +42,14 @@ const data = {
 			icon: IconListDetails,
 		},
 		{
-			title: "Analytics",
-			url: "#",
+			title: "Users",
+			url: "/admin/users",
 			icon: IconChartBar,
 		},
 		{
-			title: "Projects",
-			url: "#",
+			title: "Curriculum",
+			url: "/admin/curriculum",
 			icon: IconFolder,
-		},
-		{
-			title: "Team",
-			url: "#",
-			icon: IconUsers,
 		},
 	],
 	navClouds: [
