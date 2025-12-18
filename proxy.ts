@@ -19,7 +19,34 @@ const aj = arcjet({
 
 async function authMiddleware(request: NextRequest) {
 	const { nextUrl } = request;
+	const pathname = nextUrl.pathname;
 
+	// ---------------------------------------------------------------------------
+	// 1. Root Redirect (Global Entry Point)
+	// ---------------------------------------------------------------------------
+	if (pathname === "/") {
+		return NextResponse.redirect(new URL("/dashboard", request.url));
+	}
+
+	// ---------------------------------------------------------------------------
+	// 2. Route Categorization
+	// ---------------------------------------------------------------------------
+	const isAuthRoute =
+		pathname.startsWith("/login") || pathname.startsWith("/register");
+
+	const isApiRoute =
+		pathname.startsWith("/api/auth") ||
+		pathname.startsWith("/api/uploadthing") ||
+		pathname.startsWith("/api/s3");
+
+	const isWaitingApprovalPage = pathname === "/waiting-approval";
+	const isRejectedPage = pathname === "/rejected";
+	const isSelectCurriculumPage = pathname === "/select-curriculum";
+	const isAdminRoute = pathname.startsWith("/admin");
+
+	// ---------------------------------------------------------------------------
+	// 3. Fetch Session
+	// ---------------------------------------------------------------------------
 	const sessionRes = await fetch(`${nextUrl.origin}/api/auth/get-session`, {
 		headers: {
 			cookie: request.headers.get("cookie") || "",
@@ -30,34 +57,66 @@ async function authMiddleware(request: NextRequest) {
 	const session = await sessionRes.json();
 	const user = session?.user;
 
-	const isAuthRoute =
-		nextUrl.pathname.startsWith("/login") ||
-		nextUrl.pathname.startsWith("/register");
-	const isPublicRoute =
-		nextUrl.pathname === "/" || nextUrl.pathname.startsWith("/api/s3");
-	const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+	// ---------------------------------------------------------------------------
+	// 4. Unauthenticated Handling
+	// ---------------------------------------------------------------------------
+	if (!user) {
+		// Izinkan akses ke Login, Register, dan API publik
+		if (isAuthRoute || isApiRoute) {
+			return NextResponse.next();
+		}
 
-	const isWaitingApproval = nextUrl.pathname === "/waiting-approval";
-	const isRejectedPage = nextUrl.pathname === "/rejected";
-	const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+		// Redirect semua trafik lain ke halaman Login
+		const callbackUrl = pathname;
+		return NextResponse.redirect(
+			new URL(
+				`/login?callbackURL=${encodeURIComponent(callbackUrl)}`,
+				request.url
+			)
+		);
+	}
 
+	// ---------------------------------------------------------------------------
+	// 5. Authenticated Handling (Status Checks)
+	// ---------------------------------------------------------------------------
 	if (user) {
+		if (isAuthRoute) {
+			return NextResponse.redirect(new URL("/dashboard", request.url));
+		}
+
 		if (user.status === "PENDING" || user.role === "GUEST") {
-			if (!isWaitingApproval && !isApiAuthRoute) {
+			if (!isWaitingApprovalPage && !isApiRoute) {
 				return NextResponse.redirect(new URL("/waiting-approval", request.url));
 			}
 			return NextResponse.next();
 		}
 
 		if (user.status === "REJECTED") {
-			if (!isRejectedPage && !isApiAuthRoute) {
+			if (!isRejectedPage && !isApiRoute) {
 				return NextResponse.redirect(new URL("/rejected", request.url));
 			}
 			return NextResponse.next();
 		}
 
-		if ((isWaitingApproval || isRejectedPage) && user.status === "VERIFIED") {
-			return NextResponse.redirect(new URL("/dashboard", request.url));
+		const hasCurriculum = !!user.selectedCurriculumId;
+		const isRegularUser = user.role !== "ADMIN" && user.role !== "MENTOR";
+
+		if (user.status === "VERIFIED" && !hasCurriculum && isRegularUser) {
+			if (!isSelectCurriculumPage && !isApiRoute) {
+				return NextResponse.redirect(
+					new URL("/select-curriculum", request.url)
+				);
+			}
+			return NextResponse.next();
+		}
+
+		if (user.status === "VERIFIED") {
+			const isStuckPage = isWaitingApprovalPage || isRejectedPage;
+			const isRedundantSelect = isSelectCurriculumPage && hasCurriculum;
+
+			if (isStuckPage || isRedundantSelect) {
+				return NextResponse.redirect(new URL("/dashboard", request.url));
+			}
 		}
 
 		if (isAdminRoute) {
@@ -65,21 +124,9 @@ async function authMiddleware(request: NextRequest) {
 				return NextResponse.redirect(new URL("/dashboard", request.url));
 			}
 
-			if (
-				nextUrl.pathname.startsWith("/admin/users") &&
-				user.role !== "ADMIN"
-			) {
+			if (pathname.startsWith("/admin/users") && user.role !== "ADMIN") {
 				return NextResponse.redirect(new URL("/admin/courses", request.url));
 			}
-		}
-	}
-
-	if (!user) {
-		if (!isAuthRoute && !isPublicRoute && !isApiAuthRoute) {
-			const callbackUrl = nextUrl.pathname;
-			return NextResponse.redirect(
-				new URL(`/login?callbackURL=${callbackUrl}`, request.url)
-			);
 		}
 	}
 

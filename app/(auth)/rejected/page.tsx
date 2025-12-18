@@ -22,8 +22,7 @@ export default function RejectedPage() {
 							Pendaftaran Ditolak
 						</CardTitle>
 						<CardDescription className="text-base">
-							Mohon maaf, pendaftaran akun Anda tidak dapat kami setujui saat
-							ini.
+							Mohon maaf, pendaftaran akun Anda tidak dapat kami setujui.
 						</CardDescription>
 					</div>
 				</CardHeader>
@@ -33,7 +32,7 @@ export default function RejectedPage() {
 							Admin telah meninjau data pendaftaran Anda dan memutuskan untuk
 							menolak permintaan akses ini.
 						</p>
-						<p>Hal ini mungkin dikarenakan:</p>
+						<p>Kemungkinan penyebab:</p>
 						<ul className="list-disc list-inside mt-1 ml-1 space-y-1">
 							<li>Data diri (NIM/Nama) tidak valid.</li>
 							<li>Divisi yang dipilih tidak sesuai.</li>
@@ -44,7 +43,7 @@ export default function RejectedPage() {
 				<CardFooter className="flex flex-col gap-2">
 					<LogoutButton />
 					<p className="text-xs text-muted-foreground mt-4">
-						Jika Anda merasa ini adalah kesalahan, silakan hubungi admin divisi
+						Jika Anda merasa ini kesalahan, silakan hubungi admin divisi
 						terkait.
 					</p>
 				</CardFooter>

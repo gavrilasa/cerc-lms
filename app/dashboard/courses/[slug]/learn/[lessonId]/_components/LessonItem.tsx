@@ -18,7 +18,7 @@ interface iAppProps {
 export function LessonItem({ lesson, slug, isActive, completed }: iAppProps) {
 	return (
 		<Link
-			href={`/dashboard/${slug}/${lesson.id}`}
+			href={`/dashboard/courses/${slug}/learn/${lesson.id}`}
 			className={buttonVariants({
 				variant: completed ? "secondary" : "outline",
 				className: cn(

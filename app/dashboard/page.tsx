@@ -1,28 +1,93 @@
-import "server-only";
-
-import { redirect } from "next/navigation";
+import { getEnrolledCourses } from "@/app/data/user/get-enrolled-courses";
+import { getAvailableCourses } from "@/app/data/course/get-available-courses";
+import { CourseProgressCard } from "./_components/CourseProgressCard";
+import { CurriculumCourseCard } from "./_components/CurriculumCourseCard";
+import { EmptyState } from "@/components/general/EmptyState";
+import { Separator } from "@/components/ui/separator";
 import { requireUser } from "@/app/data/user/require-user";
-import { getUserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details"; // Pastikan path DAL sesuai Fase 2
-import { DashboardContent } from "./_components/DashboardContent";
 
 export const metadata = {
 	title: "Dashboard Pembelajaran",
 };
 
 export default async function DashboardPage() {
-	// 1. Ambil User Session
 	const user = await requireUser();
 
-	// 2. Fetch Data Kurikulum User (DAL Fase 2)
-	// Fetcher ini sudah mengembalikan object { coreCourses, electiveCourses, userStatus, ... }
-	const dashboardData = await getUserCurriculumDetails(user.id);
+	const [enrolledCourses, availableCourses] = await Promise.all([
+		getEnrolledCourses(),
+		getAvailableCourses(),
+	]);
 
-	// 3. Validasi Null / Data Korup
-	// Jika user belum punya kurikulum atau data tidak ditemukan, lempar kembali ke seleksi
-	if (!dashboardData) {
-		redirect("/select-curriculum");
-	}
+	return (
+		<div className="flex flex-col gap-y-10 pb-10">
+			<section className="space-y-6">
+				<div className="flex items-center justify-between">
+					<h2 className="text-2xl font-bold tracking-tight">
+						Lanjutkan Belajar
+					</h2>
+					<span className="text-sm text-muted-foreground">
+						{enrolledCourses.length} Kursus Aktif
+					</span>
+				</div>
 
-	// 4. Render Client Component untuk Interaktivitas
-	return <DashboardContent data={dashboardData} />;
+				{enrolledCourses.length > 0 ? (
+					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{enrolledCourses.map((item) => (
+							<CourseProgressCard key={item.course.id} data={item} />
+						))}
+					</div>
+				) : (
+					<EmptyState
+						title="Belum ada kursus yang diikuti"
+						description="Anda belum memulai pembelajaran apapun. Pilih kursus dari katalog di bawah untuk memulai."
+						href="#available-courses"
+						buttonText="Lihat Katalog"
+					/>
+				)}
+			</section>
+
+			<Separator />
+
+			<section id="available-courses" className="space-y-6">
+				<div className="space-y-1">
+					<h2 className="text-2xl font-bold tracking-tight">Katalog Kursus</h2>
+					<p className="text-muted-foreground">
+						Daftar kursus yang tersedia untuk divisi Anda ({user.division}).
+					</p>
+				</div>
+
+				{availableCourses.length > 0 ? (
+					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{availableCourses.map((course) => (
+							<CurriculumCourseCard
+								key={course.id}
+								isLocked={false}
+								course={{
+									id: course.id,
+									title: course.title,
+									slug: `courses/${course.slug}`,
+									duration: course.duration,
+									level: course.level,
+									thumbnail: course.fileKey,
+									status: "NotStarted",
+									smallDescription: course.smallDescription,
+									category: course.category,
+									isLocked: false,
+									type: "ELECTIVE",
+									order: null,
+									createdAt: course.updatedAt,
+								}}
+							/>
+						))}
+					</div>
+				) : (
+					<div className="py-12 text-center border-2 border-dashed rounded-lg">
+						<p className="text-muted-foreground">
+							Tidak ada kursus baru yang tersedia saat ini untuk divisi Anda.
+						</p>
+					</div>
+				)}
+			</section>
+		</div>
+	);
 }

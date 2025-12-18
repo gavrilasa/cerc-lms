@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { LogoutButton } from "./_components/LogoutButton";
 import { Clock } from "lucide-react";
+import { type AuthUser } from "@/lib/access-control";
 
 export default async function WaitingApprovalPage() {
 	const session = await auth.api.getSession({
@@ -21,9 +22,8 @@ export default async function WaitingApprovalPage() {
 		return redirect("/login");
 	}
 
-	// Casting ke 'any' jika tipe division belum terupdate di library better-auth
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const userDivision = (session.user as any).division || "Unknown Division";
+	const user = session.user as AuthUser;
+	const userDivision = user.division || "Unknown Division";
 
 	return (
 		<div className="min-h-screen w-full flex items-center justify-center bg-muted/40 p-4">
@@ -53,7 +53,7 @@ export default async function WaitingApprovalPage() {
 						</p>
 						<p className="mt-2">
 							Anda akan mendapatkan akses penuh ke materi pembelajaran setelah
-							verifikasi selesai. Silakan cek kembali secara berkala.
+							status Anda diverifikasi.
 						</p>
 					</div>
 				</CardContent>
