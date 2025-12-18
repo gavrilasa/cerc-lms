@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CurriculumProgressType } from "@/app/data/curriculum/get-user-progress";
+import type { UserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Card,
@@ -30,11 +30,12 @@ import {
 import { cn } from "@/lib/utils";
 
 interface DashboardViewProps {
-	data: CurriculumProgressType;
+	data: UserCurriculumDetails;
 }
 
 export function DashboardView({ data }: DashboardViewProps) {
-	const { curriculum, electives, isCurriculumCompleted } = data;
+	const { coreCourses, electiveCourses, userStatus } = data;
+	const isCurriculumCompleted = userStatus === "COMPLETED";
 
 	return (
 		<div className="w-full space-y-6">
@@ -51,13 +52,11 @@ export function DashboardView({ data }: DashboardViewProps) {
 					<TabsTrigger value="elective">Materi Tambahan</TabsTrigger>
 				</TabsList>
 
-				{/* === TAB 1: ROADMAP === */}
 				<TabsContent value="roadmap" className="space-y-4 mt-6">
 					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{curriculum.map((course, index) => {
-							// Ambil nama course sebelumnya untuk pesan tooltip
+						{coreCourses.map((course, index) => {
 							const prevCourseName =
-								index > 0 ? curriculum[index - 1].title : "Materi Sebelumnya";
+								index > 0 ? coreCourses[index - 1].title : "Materi Sebelumnya";
 
 							return (
 								<CourseCard
@@ -69,16 +68,14 @@ export function DashboardView({ data }: DashboardViewProps) {
 							);
 						})}
 					</div>
-					{curriculum.length === 0 && (
+					{coreCourses.length === 0 && (
 						<div className="text-center py-12 text-muted-foreground">
 							Belum ada kurikulum yang tersedia untuk divisi ini.
 						</div>
 					)}
 				</TabsContent>
 
-				{/* === TAB 2: ELECTIVE === */}
 				<TabsContent value="elective" className="space-y-6 mt-6">
-					{/* Banner Peringatan jika Kurikulum Belum Selesai */}
 					{!isCurriculumCompleted && (
 						<Alert
 							variant="destructive"
@@ -88,19 +85,18 @@ export function DashboardView({ data }: DashboardViewProps) {
 							<AlertTitle>Akses Terbatas</AlertTitle>
 							<AlertDescription>
 								Akses materi tambahan terkunci hingga seluruh{" "}
-								<strong>Kurikulum Wajib</strong> diselesaikan. Selesaikan semua
-								course di tab Roadmap terlebih dahulu.
+								<strong>Kurikulum Wajib</strong> diselesaikan.
 							</AlertDescription>
 						</Alert>
 					)}
 
 					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{electives.map((course) => (
+						{electiveCourses.map((course) => (
 							<CourseCard key={course.id} course={course} isElective={true} />
 						))}
 					</div>
 
-					{electives.length === 0 && (
+					{electiveCourses.length === 0 && (
 						<div className="text-center py-12 text-muted-foreground">
 							Tidak ada materi tambahan saat ini.
 						</div>
@@ -111,10 +107,8 @@ export function DashboardView({ data }: DashboardViewProps) {
 	);
 }
 
-// === SUB-COMPONENT: KARTU COURSE ===
 interface CourseCardProps {
-	// Menggunakan tipe element dari array curriculum/electives
-	course: CurriculumProgressType["curriculum"][0];
+	course: UserCurriculumDetails["coreCourses"][0];
 	prevCourseName?: string;
 	index?: number;
 	isElective?: boolean;
@@ -126,13 +120,21 @@ function CourseCard({
 	index,
 	isElective = false,
 }: CourseCardProps) {
-	const { state, title, smallDescription, level, duration, slug } = course;
+	// [Fix] smallDescription dan category sekarang sudah resmi ada di tipe data
+	const {
+		title,
+		level,
+		duration,
+		slug,
+		status,
+		isLocked,
+		smallDescription,
+		category,
+	} = course;
 
-	const isLocked = state === "LOCKED";
-	const isActive = state === "ACTIVE";
-	const isCompleted = state === "COMPLETED";
+	const isActive = status === "Active";
+	const isCompleted = status === "Completed";
 
-	// Tentukan Style Kartu
 	const cardStyles = cn(
 		"flex flex-col h-full transition-all duration-200",
 		isActive && "border-primary ring-1 ring-primary shadow-md scale-[1.01]",
@@ -140,7 +142,6 @@ function CourseCard({
 		isCompleted && "border-green-500/50 bg-green-50/10"
 	);
 
-	// Konten Tombol Aksi
 	const ActionButton = () => {
 		if (isLocked) {
 			return (
@@ -173,7 +174,6 @@ function CourseCard({
 		);
 	};
 
-	// Wrapper Kartu
 	const CardContentWrapper = (
 		<Card className={cardStyles}>
 			<CardHeader>
@@ -192,7 +192,7 @@ function CourseCard({
 				</div>
 				<CardTitle className="line-clamp-2 text-lg">{title}</CardTitle>
 				<CardDescription className="flex items-center gap-1">
-					<BookOpen className="h-3 w-3" /> {course.category} •{" "}
+					<BookOpen className="h-3 w-3" /> {category} •{" "}
 					{Math.round(duration / 60)} Jam
 				</CardDescription>
 			</CardHeader>
@@ -207,7 +207,6 @@ function CourseCard({
 		</Card>
 	);
 
-	// Jika terkunci, bungkus dengan Tooltip
 	if (isLocked && !isElective) {
 		return (
 			<TooltipProvider>

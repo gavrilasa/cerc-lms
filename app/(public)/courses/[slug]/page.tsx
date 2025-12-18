@@ -1,14 +1,15 @@
 import { getIndividualCourse } from "@/app/data/course/get-course";
-import { getCurriculumProgress } from "@/app/data/curriculum/get-user-progress";
+import { getUserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details";
 import { requireUser } from "@/app/data/user/require-user";
 import { EnrollmentButton } from "./_components/EnrollmentButton";
-import prisma from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, Clock, Signal, Video } from "lucide-react";
+import { BookOpen, Clock, Signal, Video, Lock } from "lucide-react";
 import Image from "next/image";
 import { env } from "@/lib/env";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function CoursePage({
 	params,
@@ -21,51 +22,70 @@ export default async function CoursePage({
 	const user = await requireUser();
 	const course = await getIndividualCourse(slug);
 
-	// 2. Ambil Divisi Course (Diperlukan untuk cek kurikulum)
-	const courseContext = await prisma.course.findUnique({
-		where: { id: course.id },
-		select: {
-			division: true,
-			curriculumOrder: true,
-		},
-	});
+	// 2. Ambil Detail Dashboard User (Single Source of Truth)
+	const dashboardData = await getUserCurriculumDetails(user.id);
 
-	if (!courseContext) {
-		return <div>Data course tidak lengkap. Hubungi admin.</div>;
-	}
+	// 3. Tentukan Status Akses & Pesan Lock
+	let isLocked = false;
+	let lockedMessage = "";
+	let isInCurriculum = false;
 
-	// 3. Ambil Status Kurikulum User (Logic Core)
-	const { curriculum, electives } = await getCurriculumProgress(
-		user.id,
-		courseContext.division
-	);
+	if (!dashboardData) {
+		// Edge Case: User belum pilih kurikulum
+		isLocked = true;
+		lockedMessage = "Anda belum memilih kurikulum.";
+	} else {
+		// Cek di Core Courses
+		const coreIndex = dashboardData.coreCourses.findIndex(
+			(c) => c.id === course.id
+		);
 
-	// 4. Tentukan Status Akses Course Ini
-	const currentCourseState =
-		curriculum.find((c) => c.id === course.id) ||
-		electives.find((c) => c.id === course.id);
+		if (coreIndex !== -1) {
+			isInCurriculum = true;
+			const coreCourse = dashboardData.coreCourses[coreIndex];
+			isLocked = coreCourse.isLocked;
 
-	const isLocked = currentCourseState?.state === "LOCKED";
-
-	// 5. Generate Pesan Kunci Dinamis
-	let lockedMessage = "Prasyarat belum terpenuhi";
-
-	if (isLocked) {
-		if (courseContext.curriculumOrder) {
-			const prevOrder = courseContext.curriculumOrder - 1;
-			if (prevOrder > 0) {
-				const prevCourse = curriculum.find(
-					(c) => c.curriculumOrder === prevOrder
-				);
-				if (prevCourse) {
-					lockedMessage = `Selesaikan "${prevCourse.title}" untuk membuka`;
+			if (isLocked) {
+				// Logic Pesan: Cari course sebelumnya
+				if (coreIndex > 0) {
+					const prevCourse = dashboardData.coreCourses[coreIndex - 1];
+					lockedMessage = `Selesaikan "${prevCourse.title}" untuk membuka materi ini.`;
+				} else {
+					lockedMessage = "Selesaikan materi sebelumnya dalam roadmap.";
 				}
-			} else {
-				lockedMessage = "Selesaikan course sebelumnya dalam kurikulum";
 			}
 		} else {
-			lockedMessage = "Selesaikan seluruh Kurikulum Wajib terlebih dahulu";
+			// Cek di Elective Courses
+			const electiveCourse = dashboardData.electiveCourses.find(
+				(c) => c.id === course.id
+			);
+
+			if (electiveCourse) {
+				isInCurriculum = true;
+				isLocked = electiveCourse.isLocked;
+				if (isLocked) {
+					lockedMessage =
+						"Selesaikan seluruh Kurikulum Wajib (Core) untuk membuka materi pengayaan ini.";
+				}
+			}
 		}
+	}
+
+	// Jika course tidak ada di kurikulum user sama sekali (Cross-curriculum browsing prevention)
+	if (dashboardData && !isInCurriculum) {
+		return (
+			<div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
+				<Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+				<h1 className="text-2xl font-bold">Akses Dibatasi</h1>
+				<p className="text-muted-foreground">
+					Course ini tidak tersedia dalam kurikulum{" "}
+					<strong>{dashboardData.curriculumInfo.title}</strong> yang Anda ambil.
+				</p>
+				<Button asChild className="mt-4">
+					<Link href="/dashboard">Kembali ke Dashboard</Link>
+				</Button>
+			</div>
+		);
 	}
 
 	return (

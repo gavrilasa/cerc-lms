@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { type Division } from "@/lib/generated/prisma";
+import type { Division } from "@/lib/generated/prisma/enums";
 
 interface DivisionBadgeProps {
 	division: Division | string | null | undefined;
@@ -22,10 +22,6 @@ export function DivisionBadge({ division, className }: DivisionBadgeProps) {
 				return "bg-pink-100 text-pink-700 border-pink-200 hover:bg-pink-100";
 			case "NETWORKING":
 				return "bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100";
-			case "ARTIFICIAL_INTELLIGENCE":
-				return "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100";
-			case "CYBER_SECURITY":
-				return "bg-red-100 text-red-700 border-red-200 hover:bg-red-100";
 			default:
 				return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-100";
 		}

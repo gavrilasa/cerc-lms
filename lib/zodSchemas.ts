@@ -20,8 +20,6 @@ export const divisions = [
 	"EMBEDDED",
 	"MULTIMEDIA",
 	"NETWORKING",
-	"ARTIFICIAL_INTELLIGENCE",
-	"CYBER_SECURITY",
 	"GLOBAL",
 ] as const;
 

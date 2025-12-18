@@ -32,19 +32,18 @@ export function AdminCourseCard({ data }: iAppProps) {
 
 	return (
 		<Card className="group relative py-0 gap-0 overflow-hidden">
-			<div className="absolute top-2 left-2 z-10">
-				{data.curriculumOrder !== null && data.curriculumOrder !== undefined ? (
-					<Badge className="bg-primary font-semibold hover:bg-primary">
-						Kurikulum: #{data.curriculumOrder}
-					</Badge>
-				) : (
-					<Badge
-						variant="secondary"
-						className="bg-background/80 backdrop-blur-md text-foreground font-medium border-black/20 px-2 py-1"
-					>
-						Non-Curriculum
-					</Badge>
-				)}
+			{/* UPDATE: Menggunakan Divisi & Status sebagai indikator utama */}
+			<div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5 items-start">
+				<Badge className="bg-primary font-semibold hover:bg-primary shadow-sm">
+					{data.division}
+				</Badge>
+
+				<Badge
+					variant={data.status === "Published" ? "secondary" : "outline"}
+					className="bg-background/80 backdrop-blur-md text-xs font-medium border-black/10 shadow-sm"
+				>
+					{data.status}
+				</Badge>
 			</div>
 
 			<div className="absolute top-2 right-2 z-10">
@@ -65,7 +64,8 @@ export function AdminCourseCard({ data }: iAppProps) {
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuItem asChild>
-							<Link href={`/admin/courses/${data.slug}`}>
+							{/* Redirect ke halaman public agar admin melihat apa yang dilihat user */}
+							<Link href={`/courses/${data.slug}`} target="_blank">
 								<Eye className="size-4 mr-2" /> Preview
 							</Link>
 						</DropdownMenuItem>
@@ -100,10 +100,13 @@ export function AdminCourseCard({ data }: iAppProps) {
 					{data.smallDescription}
 				</p>
 
-				<div className="flex items-center gap-x-5">
+				<div className="flex items-center gap-x-5 mt-4">
 					<div className="flex items-center gap-x-2">
 						<TimerIcon className="size-4 text-primary" />
-						<p className="text-sm text-muted-foreground">{data.duration} Jam</p>
+						<p className="text-sm text-muted-foreground">
+							{/* Asumsi data duration disimpan dalam menit */}
+							{Math.round(data.duration / 60)} Jam
+						</p>
 					</div>
 					<div className="flex items-center gap-x-2">
 						<School className="size-4 text-primary" />

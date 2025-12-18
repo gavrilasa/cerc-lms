@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Shield, Trash2, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserStatus, updateUserRole, deleteUser } from "../actions";
-import type { Role, UserStatus } from "@/lib/generated/prisma";
+import type { Role, UserStatus } from "@/lib/generated/prisma/enums";
 
 interface UserActionsProps {
 	user: {

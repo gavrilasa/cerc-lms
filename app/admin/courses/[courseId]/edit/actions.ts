@@ -3,6 +3,7 @@
 import { requireAdmin } from "@/app/data/admin/require-admin";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import prisma from "@/lib/db";
+import { Division } from "@/lib/generated/prisma/enums";
 import { ApiResponse } from "@/lib/types";
 import {
 	chapterSchema,
@@ -57,6 +58,10 @@ export async function editCourse(
 			};
 		}
 
+		const division = result.data.division
+			? (result.data.division as Division)
+			: undefined;
+
 		await prisma.course.update({
 			where: {
 				id: courseId,
@@ -64,6 +69,7 @@ export async function editCourse(
 			},
 			data: {
 				...result.data,
+				division: division,
 			},
 		});
 
@@ -71,7 +77,8 @@ export async function editCourse(
 			status: "success",
 			message: "Course updated Successfully",
 		};
-	} catch {
+	} catch (error) {
+		console.error("[EDIT_COURSE_ERROR]", error);
 		return {
 			status: "error",
 			message: "Failed to Update Course",

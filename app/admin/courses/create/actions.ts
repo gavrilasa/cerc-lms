@@ -8,7 +8,7 @@ import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
 import { courseSchema, CourseSchemaType } from "@/lib/zodSchemas";
 import { request } from "@arcjet/next";
-import { type Division } from "@/lib/generated/prisma";
+import type { Division } from "@/lib/generated/prisma/enums";
 
 const aj = arcjet.withRule(
 	fixedWindow({

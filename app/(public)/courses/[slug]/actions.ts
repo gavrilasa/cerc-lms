@@ -1,7 +1,7 @@
 "use server";
 
 import { requireUser } from "@/app/data/user/require-user";
-import { getCurriculumProgress } from "@/app/data/curriculum/get-user-progress";
+import { getUserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
@@ -26,7 +26,6 @@ export async function enrollInCourseAction(
 	const user = await requireUser();
 	let courseSlug: string;
 
-	// Validasi input courseId
 	const parseResult = enrollSchema.safeParse(courseId);
 	if (!parseResult.success) {
 		return { status: "error", message: "Invalid Course ID" };
@@ -42,10 +41,9 @@ export async function enrollInCourseAction(
 			return { status: "error", message: "You have been blocked" };
 		}
 
-		// Ambil division juga untuk cek kurikulum
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
-			select: { id: true, slug: true, division: true },
+			select: { id: true, slug: true },
 		});
 
 		if (!course) {
@@ -54,38 +52,44 @@ export async function enrollInCourseAction(
 
 		courseSlug = course.slug;
 
-		// Ambil snapshot status kurikulum user saat ini
-		const { curriculum, electives } = await getCurriculumProgress(
-			user.id,
-			course.division
-		);
+		const dashboardData = await getUserCurriculumDetails(user.id);
 
-		// Cari status course target ini di dalam kurikulum atau elektif
-		const targetCourse =
-			curriculum.find((c) => c.id === course.id) ||
-			electives.find((c) => c.id === course.id);
-
-		// Validasi Gating: Tolak jika course terkunci (LOCKED)
-		if (targetCourse?.state === "LOCKED") {
+		if (!dashboardData) {
 			return {
 				status: "error",
-				message: "Course terkunci. Selesaikan prasyarat kurikulum sebelumnya.",
+				message:
+					"Anda belum memilih kurikulum. Silakan pilih kurikulum terlebih dahulu.",
 			};
 		}
 
-		// Idempotency: Jika sudah completed atau enrolled, anggap sukses (tanpa write DB)
+		const targetCourse =
+			dashboardData.coreCourses.find((c) => c.id === courseId) ||
+			dashboardData.electiveCourses.find((c) => c.id === courseId);
+
+		if (!targetCourse) {
+			return {
+				status: "error",
+				message: "Course ini tidak tersedia dalam kurikulum Anda saat ini.",
+			};
+		}
+
+		if (targetCourse.isLocked) {
+			return {
+				status: "error",
+				message: "Materi terkunci. Selesaikan kurikulum wajib terlebih dahulu.",
+			};
+		}
+
 		if (
-			targetCourse?.state === "COMPLETED" ||
-			targetCourse?.state === "ACTIVE"
+			targetCourse.status === "Completed" ||
+			targetCourse.status === "Active"
 		) {
-			// Cek sepintas di DB apakah enrollment benar-benar ada untuk case Active
-			const isEnrolled = await prisma.enrollment.findUnique({
-				where: {
-					userId_courseId: { userId: user.id, courseId: course.id },
-				},
+			const existing = await prisma.enrollment.findUnique({
+				where: { userId_courseId: { userId: user.id, courseId } },
 			});
-			if (isEnrolled && isEnrolled.status === "Active") {
-				return { status: "success", message: "Already enrolled" }; // Redirect handled below
+
+			if (existing && existing.status === "Active") {
+				return { status: "success", message: "Already enrolled" };
 			}
 		}
 
@@ -97,7 +101,6 @@ export async function enrollInCourseAction(
 			});
 
 			if (existingEnrollment) {
-				// Aktifkan kembali jika status sebelumnya inactive/archived
 				if (existingEnrollment.status !== "Active") {
 					await tx.enrollment.update({
 						where: { id: existingEnrollment.id },
@@ -105,7 +108,6 @@ export async function enrollInCourseAction(
 					});
 				}
 			} else {
-				// Buat enrollment baru dengan completedAt null
 				await tx.enrollment.create({
 					data: {
 						userId: user.id,
@@ -119,7 +121,7 @@ export async function enrollInCourseAction(
 
 		revalidatePath("/dashboard");
 	} catch (error) {
-		console.error(error);
+		console.error("[ENROLL_ACTION]", error);
 		return { status: "error", message: "Failed to enroll in course" };
 	}
 

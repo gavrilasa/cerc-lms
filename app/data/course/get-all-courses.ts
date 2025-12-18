@@ -3,10 +3,19 @@ import "server-only";
 import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "@/lib/generated/prisma/client";
+import { Division } from "@/lib/generated/prisma/enums";
 import type { AuthUser } from "@/lib/access-control";
 
-export async function getAllCourses() {
+type GetAllCoursesOptions = {
+	divisionFilter?: Division;
+	excludeCurriculumId?: string;
+};
+
+export async function getAllCourses({
+	divisionFilter,
+	excludeCurriculumId,
+}: GetAllCoursesOptions = {}) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
@@ -21,9 +30,19 @@ export async function getAllCourses() {
 		status: "Published",
 	};
 
-	if (user.role !== "ADMIN") {
+	if (divisionFilter) {
+		whereClause.division = divisionFilter;
+	} else if (user.role !== "ADMIN") {
 		if (!user.division) return [];
 		whereClause.division = user.division;
+	}
+
+	if (excludeCurriculumId) {
+		whereClause.curricula = {
+			none: {
+				curriculumId: excludeCurriculumId,
+			},
+		};
 	}
 
 	const data = await prisma.course.findMany({

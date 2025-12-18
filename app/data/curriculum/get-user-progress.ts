@@ -1,104 +1,49 @@
 import "server-only";
 
 import prisma from "@/lib/db";
-import type { Division } from "@/lib/generated/prisma";
-
-export type CourseState = "LOCKED" | "ACTIVE" | "COMPLETED" | "ACCESSIBLE";
 
 export async function getCurriculumProgress(
 	userId: string,
-	division: Division
+	curriculumId: string
 ) {
-	const allCourses = await prisma.course.findMany({
+	const totalCoreCount = await prisma.curriculumCourse.count({
 		where: {
-			division: division,
-			status: "Published",
-		},
-		select: {
-			id: true,
-			title: true,
-			slug: true,
-			fileKey: true,
-			smallDescription: true,
-			duration: true,
-			level: true,
-			category: true,
-			curriculumOrder: true,
-		},
-		orderBy: {
-			curriculumOrder: "asc",
+			curriculumId: curriculumId,
+			type: "CORE",
 		},
 	});
 
-	const userEnrollments = await prisma.enrollment.findMany({
+	const completedCoreCount = await prisma.enrollment.count({
 		where: {
 			userId: userId,
+			completedAt: { not: null },
 			course: {
-				division: division,
+				curricula: {
+					some: {
+						curriculumId: curriculumId,
+						type: "CORE",
+					},
+				},
 			},
 		},
-		select: {
-			courseId: true,
-			completedAt: true,
-			status: true,
-		},
 	});
 
-	const getEnrollment = (courseId: string) =>
-		userEnrollments.find((e) => e.courseId === courseId);
-
-	const curriculumCourses = allCourses.filter(
-		(c) => c.curriculumOrder !== null
-	);
-	const electiveCourses = allCourses.filter((c) => c.curriculumOrder === null);
-
-	let activeFound = false;
-	let isCurriculumCompleted = true;
-
-	const curriculumWithState = curriculumCourses.map((course) => {
-		const enrollment = getEnrollment(course.id);
-		const isCompleted = !!enrollment?.completedAt;
-
-		if (isCompleted) {
-			return { ...course, state: "COMPLETED" as CourseState };
-		}
-
-		if (activeFound) {
-			isCurriculumCompleted = false;
-			return { ...course, state: "LOCKED" as CourseState };
-		}
-
-		activeFound = true;
-		isCurriculumCompleted = false;
-		return { ...course, state: "ACTIVE" as CourseState };
-	});
-
-	if (curriculumCourses.length === 0) {
-		isCurriculumCompleted = true;
+	let percentage = 0;
+	if (totalCoreCount > 0) {
+		percentage = Math.round((completedCoreCount / totalCoreCount) * 100);
 	}
 
-	const electivesWithState = electiveCourses.map((course) => {
-		const enrollment = getEnrollment(course.id);
-		const isCompleted = !!enrollment?.completedAt;
-
-		if (isCompleted) {
-			return { ...course, state: "COMPLETED" as CourseState };
-		}
-
-		if (!isCurriculumCompleted) {
-			return { ...course, state: "LOCKED" as CourseState };
-		}
-
-		return { ...course, state: "ACCESSIBLE" as CourseState };
-	});
+	const isCompleted =
+		totalCoreCount > 0 && completedCoreCount >= totalCoreCount;
 
 	return {
-		curriculum: curriculumWithState,
-		electives: electivesWithState,
-		isCurriculumCompleted,
+		percentage,
+		totalCore: totalCoreCount,
+		completedCore: completedCoreCount,
+		isCompleted,
 	};
 }
 
-export type CurriculumProgressType = Awaited<
+export type CurriculumProgress = Awaited<
 	ReturnType<typeof getCurriculumProgress>
 >;

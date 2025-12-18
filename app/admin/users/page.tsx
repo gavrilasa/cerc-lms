@@ -1,6 +1,6 @@
 import { getUsers } from "@/app/data/admin/users/admin-get-users";
 import UserTable from "./_components/UserTable";
-import type { Division, UserStatus } from "@/lib/generated/prisma";
+import type { Division, UserStatus } from "@/lib/generated/prisma/enums";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
