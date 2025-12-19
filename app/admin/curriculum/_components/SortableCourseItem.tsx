@@ -4,7 +4,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X, BookOpen, Layers } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -74,9 +73,6 @@ export function SortableCourseItem({
 			<div className="flex-1 min-w-0">
 				<div className="flex items-center gap-2 mb-1">
 					<h4 className="font-medium truncate">{item.title}</h4>
-					<Badge variant="outline" className="text-[10px]">
-						{item.level}
-					</Badge>
 				</div>
 				<div className="flex items-center gap-2 text-xs text-muted-foreground">
 					{isCore ? (

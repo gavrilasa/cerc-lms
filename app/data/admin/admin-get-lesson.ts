@@ -13,8 +13,6 @@ export async function adminGetLesson(id: string) {
 		},
 		select: {
 			title: true,
-			videoKey: true,
-			thumbnailKey: true,
 			description: true,
 			id: true,
 			position: true,

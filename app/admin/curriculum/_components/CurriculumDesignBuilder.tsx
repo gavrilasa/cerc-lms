@@ -33,10 +33,8 @@ import { CurriculumCourseType } from "@/lib/generated/prisma/enums";
 
 // Tipe Data Lokal UI
 export interface DesignItem {
-	id: string; // Course ID
+	id: string;
 	title: string;
-	level: string;
-	category: string;
 	type: CurriculumCourseType;
 }
 

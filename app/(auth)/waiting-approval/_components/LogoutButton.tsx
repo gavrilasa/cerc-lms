@@ -8,9 +8,9 @@ export function LogoutButton() {
 	const handleSignOut = useSignOut();
 
 	return (
-		<Button variant="outline" onClick={handleSignOut} className="w-full">
-			<LogOut className="mr-2 size-4" />
-			Logout & Kembali ke Home
+		<Button variant="outline" onClick={handleSignOut} className="w-full gap-2">
+			<LogOut className="size-4" />
+			Logout
 		</Button>
 	);
 }

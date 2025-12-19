@@ -11,9 +11,7 @@ import {
 import {
 	courseSchema,
 	CourseSchemaType,
-	courseLevels,
 	courseStatus,
-	courseCategories,
 	divisions,
 } from "@/lib/zodSchemas";
 import { ArrowLeft, Loader2, PlusIcon, SparkleIcon } from "lucide-react";
@@ -38,7 +36,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { RichTextEditor } from "@/components/rich-text-editor/Editor";
+import { CourseRichTextEditor } from "@/components/rich-text-editor/CourseEditor";
 import { Uploader } from "@/components/file-uploader/Uploader";
 import { tryCatch } from "@/hooks/try-catch";
 import { useTransition } from "react";
@@ -62,9 +60,6 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 			title: "",
 			description: "",
 			fileKey: "",
-			duration: 0,
-			level: courseLevels[0],
-			category: courseCategories[3],
 			smallDescription: "",
 			slug: "",
 			status: courseStatus[0],
@@ -74,6 +69,7 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 
 	function onSubmit(values: CourseSchemaType) {
 		startTransition(async () => {
+			// Data yang dikirim sudah bersih sesuai schema baru di zodSchemas
 			const { data: result, error } = await tryCatch(CreateCourse(values));
 
 			if (error) {
@@ -118,51 +114,22 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 				<CardContent>
 					<Form {...form}>
 						<form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-							<div className="flex gap-4 items-end">
-								<FormField
-									control={form.control}
-									name="title"
-									render={({ field }) => (
-										<FormItem className="w-full">
-											<FormLabel>Title</FormLabel>
-											<FormControl>
-												<Input placeholder="Title" {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-								{userRole === "ADMIN" && (
-									<FormField
-										control={form.control}
-										name="division"
-										render={({ field }) => (
-											<FormItem className="w-full">
-												<FormLabel>Division (Admin Override)</FormLabel>
-												<Select
-													onValueChange={field.onChange}
-													defaultValue={field.value}
-												>
-													<FormControl>
-														<SelectTrigger className="w-full">
-															<SelectValue placeholder="Select Division" />
-														</SelectTrigger>
-													</FormControl>
-													<SelectContent>
-														{divisions.map((div) => (
-															<SelectItem key={div} value={div}>
-																{div}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
+							{/* 1. Judul: Paling Atas */}
+							<FormField
+								control={form.control}
+								name="title"
+								render={({ field }) => (
+									<FormItem className="w-full">
+										<FormLabel>Title</FormLabel>
+										<FormControl>
+											<Input placeholder="Course Title" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
 								)}
-							</div>
+							/>
 
+							{/* Slug */}
 							<div className="flex gap-4 items-end">
 								<FormField
 									control={form.control}
@@ -171,7 +138,7 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 										<FormItem className="w-full">
 											<FormLabel>Slug</FormLabel>
 											<FormControl>
-												<Input placeholder="Slug" {...field} />
+												<Input placeholder="course-slug-example" {...field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -191,6 +158,7 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 								</Button>
 							</div>
 
+							{/* 2. Deskripsi Singkat */}
 							<FormField
 								control={form.control}
 								name="smallDescription"
@@ -199,8 +167,8 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 										<FormLabel>Small Description</FormLabel>
 										<FormControl>
 											<Textarea
-												placeholder="Small Description"
-												className="min-h-[72]"
+												placeholder="Short summary of the course..."
+												className="min-h-[100px]"
 												{...field}
 											/>
 										</FormControl>
@@ -209,26 +177,13 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 								)}
 							/>
 
-							<FormField
-								control={form.control}
-								name="description"
-								render={({ field }) => (
-									<FormItem className="w-full">
-										<FormLabel>Description</FormLabel>
-										<FormControl>
-											<RichTextEditor field={field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
+							{/* 3. Course Cover (Label diperjelas) */}
 							<FormField
 								control={form.control}
 								name="fileKey"
 								render={({ field }) => (
 									<FormItem className="w-full">
-										<FormLabel>Thumbnail Image</FormLabel>
+										<FormLabel>Course Cover</FormLabel>
 										<FormControl>
 											<Uploader
 												onChange={field.onChange}
@@ -241,109 +196,80 @@ export function CreateCourseForm({ userRole }: CreateCourseFormProps) {
 								)}
 							/>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							{/* 4. Divisi (Hanya jika Admin) */}
+							{userRole === "ADMIN" && (
 								<FormField
 									control={form.control}
-									name="category"
+									name="division"
 									render={({ field }) => (
 										<FormItem className="w-full">
-											<FormLabel>Category</FormLabel>
+											<FormLabel>Division (Admin Override)</FormLabel>
 											<Select
 												onValueChange={field.onChange}
 												defaultValue={field.value}
 											>
 												<FormControl>
 													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select Category" />
+														<SelectValue placeholder="Select Division" />
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
-													{courseCategories.map((category) => (
-														<SelectItem key={category} value={category}>
-															{category}
+													{divisions.map((div) => (
+														<SelectItem key={div} value={div}>
+															{div}
 														</SelectItem>
 													))}
 												</SelectContent>
 											</Select>
-										</FormItem>
-									)}
-								/>
-								<FormField
-									control={form.control}
-									name="level"
-									render={({ field }) => (
-										<FormItem className="w-full">
-											<FormLabel>Level</FormLabel>
-											<Select
-												onValueChange={field.onChange}
-												defaultValue={field.value}
-											>
-												<FormControl>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select Level" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{courseLevels.map((level) => (
-														<SelectItem key={level} value={level}>
-															{level}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="duration"
-									render={({ field: { value, onChange, ...field } }) => (
-										<FormItem className="w-full">
-											<FormLabel>Duration (hours)</FormLabel>
-											<FormControl>
-												<Input
-													placeholder="Duration"
-													type="number"
-													value={value || ""}
-													onChange={(e) => {
-														const numValue = e.target.valueAsNumber;
-														onChange(isNaN(numValue) ? 0 : numValue);
-													}}
-													{...field}
-												/>
-											</FormControl>
 											<FormMessage />
 										</FormItem>
 									)}
 								/>
-								<FormField
-									control={form.control}
-									name="status"
-									render={({ field }) => (
-										<FormItem className="w-full">
-											<FormLabel>Status</FormLabel>
-											<Select
-												onValueChange={field.onChange}
-												defaultValue={field.value}
-											>
-												<FormControl>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select Status" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{courseStatus.map((status) => (
-														<SelectItem key={status} value={status}>
-															{status}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-										</FormItem>
-									)}
-								/>
-							</div>
+							)}
+
+							{/* Status */}
+							<FormField
+								control={form.control}
+								name="status"
+								render={({ field }) => (
+									<FormItem className="w-full">
+										<FormLabel>Status</FormLabel>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
+											<FormControl>
+												<SelectTrigger className="w-full">
+													<SelectValue placeholder="Select Status" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												{courseStatus.map((status) => (
+													<SelectItem key={status} value={status}>
+														{status}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							{/* 5. Deskripsi Detail (Rich Text Editor) */}
+							<FormField
+								control={form.control}
+								name="description"
+								render={({ field }) => (
+									<FormItem className="w-full">
+										<FormLabel>Detailed Description</FormLabel>
+										<FormControl>
+											<CourseRichTextEditor field={field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
 							<Button type="submit" disabled={pending}>
 								{pending ? (

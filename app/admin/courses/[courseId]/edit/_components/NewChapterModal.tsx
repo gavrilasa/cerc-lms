@@ -33,7 +33,7 @@ export function NewChapterModal({ courseId }: { courseId: string }) {
 	const form = useForm<ChapterSchemaType>({
 		resolver: zodResolver(chapterSchema),
 		defaultValues: {
-			name: "",
+			title: "",
 			courseId: courseId,
 		},
 	});
@@ -82,12 +82,12 @@ export function NewChapterModal({ courseId }: { courseId: string }) {
 					<form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
 						<FormField
 							control={form.control}
-							name="name"
+							name="title"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Name </FormLabel>
+									<FormLabel>Title</FormLabel>
 									<FormControl>
-										<Input placeholder="Chapter Name" {...field} />
+										<Input placeholder="Chapter Title" {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

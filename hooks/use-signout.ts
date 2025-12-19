@@ -11,11 +11,11 @@ export function useSignOut() {
 		await authClient.signOut({
 			fetchOptions: {
 				onSuccess: () => {
-					router.push("/");
-					toast.success("Sign Out Success");
+					router.push("/login");
+					toast.success("Berhasil keluar akun");
 				},
 				onError: () => {
-					toast.error("Failed to Sign Out");
+					toast.error("Gagal keluar akun");
 				},
 			},
 		});

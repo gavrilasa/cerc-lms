@@ -37,8 +37,6 @@ export async function adminGetCourses() {
 			id: true,
 			title: true,
 			smallDescription: true,
-			duration: true,
-			level: true,
 			status: true,
 			fileKey: true,
 			slug: true,

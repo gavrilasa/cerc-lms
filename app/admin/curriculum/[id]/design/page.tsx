@@ -58,16 +58,12 @@ export default async function CurriculumDesignPage({ params }: PageProps) {
 				initialCanvasItems={curriculum.courses.map((pivot) => ({
 					id: pivot.course.id, // Kita gunakan ID Course sebagai key utama di UI
 					title: pivot.course.title,
-					level: pivot.course.level,
 					type: pivot.type,
-					category: pivot.course.category,
 				}))}
 				initialPoolItems={poolCourses.map((c) => ({
 					id: c.id,
 					title: c.title,
-					level: c.level,
 					type: "CORE", // Default type saat di-drag dari pool
-					category: c.category,
 				}))}
 			/>
 		</div>

@@ -1,104 +1,82 @@
 "use client";
 
-import Link from "next/link";
-import type { UserCurriculumDetails } from "@/app/data/curriculum/get-user-curriculum-details";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CourseSidebarDataType } from "@/app/data/course/get-course-sidebar-data";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
-	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-	Lock,
-	PlayCircle,
-	CheckCircle,
-	AlertCircle,
-	BookOpen,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, BookOpen, Clock, PlayCircle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useConstructUrl } from "@/hooks/use-construct-url";
+import { DivisionBadge } from "@/components/general/DivisionBadge";
+import { Division } from "@/lib/generated/prisma/enums";
 
 interface DashboardViewProps {
-	data: UserCurriculumDetails;
+	myCourses: CourseSidebarDataType[];
+	roadmapCourses: CourseSidebarDataType[];
 }
 
-export function DashboardView({ data }: DashboardViewProps) {
-	const { coreCourses, electiveCourses, userStatus } = data;
-	const isCurriculumCompleted = userStatus === "COMPLETED";
-
+export function DashboardView({
+	myCourses,
+	roadmapCourses,
+}: DashboardViewProps) {
 	return (
-		<div className="w-full space-y-6">
-			<div className="flex flex-col gap-2">
-				<h1 className="text-3xl font-bold tracking-tight">Dashboard Belajar</h1>
-				<p className="text-muted-foreground">
-					Ikuti roadmap kurikulum untuk menguasai materi secara terstruktur.
-				</p>
+		<div className="space-y-6">
+			<div className="flex items-center justify-between">
+				<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
 			</div>
 
-			<Tabs defaultValue="roadmap" className="w-full">
-				<TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
-					<TabsTrigger value="roadmap">Roadmap Kurikulum</TabsTrigger>
-					<TabsTrigger value="elective">Materi Tambahan</TabsTrigger>
+			<Tabs defaultValue="my-courses" className="space-y-4">
+				<TabsList>
+					<TabsTrigger value="my-courses">My Courses</TabsTrigger>
+					<TabsTrigger value="roadmap">Roadmap</TabsTrigger>
 				</TabsList>
 
-				<TabsContent value="roadmap" className="space-y-4 mt-6">
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{coreCourses.map((course, index) => {
-							const prevCourseName =
-								index > 0 ? coreCourses[index - 1].title : "Materi Sebelumnya";
-
-							return (
-								<CourseCard
-									key={course.id}
-									course={course}
-									prevCourseName={prevCourseName}
-									index={index + 1}
-								/>
-							);
-						})}
-					</div>
-					{coreCourses.length === 0 && (
-						<div className="text-center py-12 text-muted-foreground">
-							Belum ada kurikulum yang tersedia untuk divisi ini.
+				<TabsContent value="my-courses" className="space-y-4">
+					{myCourses.length === 0 ? (
+						<div className="flex h-[400px] flex-col items-center justify-center rounded-md border border-dashed text-center animate-in fade-in-50">
+							<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-secondary/20">
+								<BookOpen className="h-10 w-10 text-muted-foreground" />
+							</div>
+							<h3 className="mt-4 text-lg font-semibold">No courses found</h3>
+							<p className="mb-4 mt-2 text-sm text-muted-foreground">
+								You haven&apos;t enrolled in any courses yet.
+							</p>
+							<Button asChild>
+								<Link href="/courses">Browse Courses</Link>
+							</Button>
+						</div>
+					) : (
+						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+							{myCourses.map((item) => (
+								<CourseCard key={item.course.id} data={item} />
+							))}
 						</div>
 					)}
 				</TabsContent>
 
-				<TabsContent value="elective" className="space-y-6 mt-6">
-					{!isCurriculumCompleted && (
-						<Alert
-							variant="destructive"
-							className="bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950 dark:text-amber-100 dark:border-amber-800"
-						>
-							<AlertCircle className="h-4 w-4 stroke-amber-600 dark:stroke-amber-400" />
-							<AlertTitle>Akses Terbatas</AlertTitle>
-							<AlertDescription>
-								Akses materi tambahan terkunci hingga seluruh{" "}
-								<strong>Kurikulum Wajib</strong> diselesaikan.
-							</AlertDescription>
-						</Alert>
-					)}
-
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{electiveCourses.map((course) => (
-							<CourseCard key={course.id} course={course} isElective={true} />
-						))}
-					</div>
-
-					{electiveCourses.length === 0 && (
-						<div className="text-center py-12 text-muted-foreground">
-							Tidak ada materi tambahan saat ini.
+				<TabsContent value="roadmap" className="space-y-4">
+					{roadmapCourses.length === 0 ? (
+						<div className="flex h-[400px] flex-col items-center justify-center rounded-md border border-dashed text-center animate-in fade-in-50">
+							<div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-secondary/20">
+								<Clock className="h-10 w-10 text-muted-foreground" />
+							</div>
+							<h3 className="mt-4 text-lg font-semibold">No roadmap found</h3>
+							<p className="mb-4 mt-2 text-sm text-muted-foreground">
+								There are no courses in your roadmap yet.
+							</p>
+						</div>
+					) : (
+						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+							{roadmapCourses.map((item) => (
+								<CourseCard key={item.course.id} data={item} />
+							))}
 						</div>
 					)}
 				</TabsContent>
@@ -107,124 +85,57 @@ export function DashboardView({ data }: DashboardViewProps) {
 	);
 }
 
-interface CourseCardProps {
-	course: UserCurriculumDetails["coreCourses"][0];
-	prevCourseName?: string;
-	index?: number;
-	isElective?: boolean;
-}
+// Internal Component: CourseCard
+// Refactored: Removed Level, Duration, and Category. Kept Division.
+function CourseCard({ data }: { data: CourseSidebarDataType }) {
+	const thumbnailUrl = useConstructUrl(data.course.fileKey);
 
-function CourseCard({
-	course,
-	prevCourseName,
-	index,
-	isElective = false,
-}: CourseCardProps) {
-	// [Fix] smallDescription dan category sekarang sudah resmi ada di tipe data
-	const {
-		title,
-		level,
-		duration,
-		slug,
-		status,
-		isLocked,
-		smallDescription,
-		category,
-	} = course;
+	return (
+		<Card className="group flex flex-col overflow-hidden hover:shadow-lg transition-all duration-300 border-border">
+			{/* Thumbnail Section */}
+			<div className="relative aspect-video w-full overflow-hidden">
+				<Image
+					src={thumbnailUrl}
+					alt={data.course.title}
+					fill
+					className="object-cover transition-transform duration-300 group-hover:scale-105"
+				/>
 
-	const isActive = status === "Active";
-	const isCompleted = status === "Completed";
-
-	const cardStyles = cn(
-		"flex flex-col h-full transition-all duration-200",
-		isActive && "border-primary ring-1 ring-primary shadow-md scale-[1.01]",
-		isLocked && "opacity-60 grayscale bg-muted/50",
-		isCompleted && "border-green-500/50 bg-green-50/10"
-	);
-
-	const ActionButton = () => {
-		if (isLocked) {
-			return (
-				<Button disabled className="w-full" variant="outline">
-					<Lock className="mr-2 h-4 w-4" />
-					Terkunci
-				</Button>
-			);
-		}
-		if (isCompleted) {
-			return (
-				<Link href={`/dashboard/${slug}`} className="w-full">
-					<Button
-						className="w-full text-green-700 hover:text-green-800 hover:bg-green-100 border-green-200"
-						variant="outline"
-					>
-						<CheckCircle className="mr-2 h-4 w-4" />
-						Review Materi
-					</Button>
-				</Link>
-			);
-		}
-		return (
-			<Link href={`/dashboard/${slug}`} className="w-full">
-				<Button className="w-full">
-					<PlayCircle className="mr-2 h-4 w-4" />
-					{isActive ? "Lanjutkan Belajar" : "Mulai Belajar"}
-				</Button>
-			</Link>
-		);
-	};
-
-	const CardContentWrapper = (
-		<Card className={cardStyles}>
-			<CardHeader>
-				<div className="flex justify-between items-start gap-2 mb-2">
-					{!isElective && index && (
-						<Badge variant="outline" className="w-fit">
-							Step {index}
-						</Badge>
-					)}
-					<Badge
-						variant={isCompleted ? "default" : "secondary"}
-						className={cn(isCompleted && "bg-green-600 hover:bg-green-700")}
-					>
-						{level}
-					</Badge>
+				{/* Overlay Play Icon */}
+				<div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+					<PlayCircle className="w-12 h-12 text-white drop-shadow-md" />
 				</div>
-				<CardTitle className="line-clamp-2 text-lg">{title}</CardTitle>
-				<CardDescription className="flex items-center gap-1">
-					<BookOpen className="h-3 w-3" /> {category} •{" "}
-					{Math.round(duration / 60)} Jam
-				</CardDescription>
+
+				{/* Metadata Badge: Division Only */}
+				<div className="absolute top-2 right-2 z-10">
+					<DivisionBadge division={data.course.division as Division} />
+				</div>
+			</div>
+
+			{/* Content Section */}
+			<CardHeader className="p-4 pb-2">
+				<CardTitle className="line-clamp-1 text-lg group-hover:text-primary transition-colors">
+					<Link href={`/dashboard/courses/${data.course.slug}`}>
+						{data.course.title}
+					</Link>
+				</CardTitle>
 			</CardHeader>
-			<CardContent className="grow">
-				<p className="text-sm text-muted-foreground line-clamp-3">
-					{smallDescription}
+
+			<CardContent className="p-4 pt-0 grow">
+				<p className="line-clamp-2 text-sm text-muted-foreground leading-relaxed h-10">
+					{data.course.smallDescription}
 				</p>
 			</CardContent>
-			<CardFooter>
-				<ActionButton />
+
+			{/* Footer Section */}
+			<CardFooter className="p-4 pt-0 mt-auto">
+				<Button asChild className="w-full gap-2 group/btn">
+					<Link href={`/dashboard/courses/${data.course.slug}`}>
+						Continue Learning
+						<ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+					</Link>
+				</Button>
 			</CardFooter>
 		</Card>
 	);
-
-	if (isLocked && !isElective) {
-		return (
-			<TooltipProvider>
-				<Tooltip delayDuration={0}>
-					<TooltipTrigger asChild>
-						<div className="cursor-not-allowed h-full">
-							{CardContentWrapper}
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="bg-destructive text-destructive-foreground">
-						<p>
-							Selesaikan <strong>{prevCourseName}</strong> untuk membuka
-						</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-		);
-	}
-
-	return CardContentWrapper;
 }

@@ -48,12 +48,6 @@ enum UserCurriculumStatus {
   COMPLETED
 }
 
-enum CourseLevel {
-  Beginner
-  Intermediate
-  Advanced
-}
-
 enum CourseStatus {
   Draft
   Published
@@ -189,9 +183,6 @@ model Course {
   title            String
   description      String
   fileKey          String
-  duration         Int
-  level            CourseLevel  @default(Beginner)
-  category         String
   division         Division
   smallDescription String
   slug             String       @unique
@@ -224,14 +215,12 @@ model Chapter {
 }
 
 model Lesson {
-  id           String   @id @default(uuid())
-  title        String
-  description  String?
-  thumbnailKey String?
-  videoKey     String?
-  position     Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   Chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   chapterId String

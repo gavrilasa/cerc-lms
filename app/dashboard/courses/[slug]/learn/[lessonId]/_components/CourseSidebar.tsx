@@ -36,9 +36,6 @@ export function CourseSidebar({ course }: iAppProps) {
 						<h1 className="font-semibold text-base leading-tight truncate">
 							{course.title}
 						</h1>
-						<p className="text-xs text-muted mt-1 truncate">
-							{course.category}
-						</p>
 					</div>
 				</div>
 

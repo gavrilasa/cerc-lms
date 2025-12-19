@@ -1,147 +1,115 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
-import { Lock, PlayCircle, CheckCircle, BookOpen } from "lucide-react";
-
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type { DashboardCourse } from "@/app/data/curriculum/get-user-curriculum-details";
 import { cn } from "@/lib/utils";
-import { useConstructUrl } from "@/hooks/use-construct-url";
+import { Course, Enrollment, Lesson } from "@/lib/generated/prisma/client";
+import { Division } from "@/lib/generated/prisma/enums";
+import { BookOpen, CheckCircle } from "lucide-react";
+import Image from "next/image";
+import { DivisionBadge } from "@/components/general/DivisionBadge";
 
 interface CurriculumCourseCardProps {
-	course: DashboardCourse;
-	isLocked: boolean;
+	course: Course & {
+		enrollment: Enrollment[];
+		lessons: Lesson[];
+		_count?: {
+			lessons: number;
+		};
+	};
+	curriculumId?: string;
+	isSelected?: boolean;
+	onSelect?: (courseId: string) => void;
+	isEnrolled?: boolean;
+	isLocked?: boolean;
 }
 
 export function CurriculumCourseCard({
 	course,
-	isLocked,
+	isSelected,
+	onSelect,
+	isEnrolled,
 }: CurriculumCourseCardProps) {
-	const isCompleted = course.status === "Completed";
-	const inProgress = course.status === "Active";
+	// Hitung total lessons dari _count (prioritas) atau panjang array lessons
+	const totalLessons = course._count?.lessons ?? course.lessons?.length ?? 0;
 
-	const imageUrl = useConstructUrl(course.thumbnail);
-
-	const CardContentInner = () => (
+	return (
 		<Card
 			className={cn(
-				"flex flex-col h-full overflow-hidden transition-all duration-200",
-				isLocked
-					? "bg-muted opacity-60 grayscale cursor-not-allowed border-dashed"
-					: "hover:shadow-md hover:border-primary/50"
+				"h-full flex flex-col transition-all duration-300 hover:shadow-lg relative overflow-hidden group",
+				isSelected ? "ring-2 ring-primary border-primary" : "border-border"
 			)}
 		>
-			<div className="relative w-full aspect-video bg-muted">
-				{imageUrl ? (
-					<Image
-						src={imageUrl}
-						alt={course.title}
-						fill
-						className="object-cover"
-						sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-					/>
-				) : (
-					<div className="flex items-center justify-center w-full h-full bg-secondary/20">
-						<BookOpen className="h-10 w-10 text-muted-foreground/50" />
-					</div>
-				)}
+			<div className="relative w-full aspect-video overflow-hidden">
+				{/* Render Image dengan aman */}
+				<Image
+					src={`https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES}.t3.storage.dev/${course.fileKey}`}
+					alt={course.title}
+					fill
+					className="object-cover transition-transform duration-300 group-hover:scale-105"
+				/>
 
-				{isLocked && (
-					<div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
-						<Lock className="h-8 w-8 text-muted-foreground" />
-					</div>
-				)}
+				{/* Overlay Badges */}
+				<div className="absolute top-2 right-2 flex flex-col gap-2">
+					{/* Hanya Division yang tersisa sebagai metadata utama */}
+					<DivisionBadge division={course.division as Division} />
 
-				{isCompleted && !isLocked && (
-					<div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full shadow-sm">
-						<CheckCircle className="h-4 w-4" />
+					{/* Level dihapus sesuai rencana refactor */}
+				</div>
+
+				{/* Selected Overlay Indicator */}
+				{isSelected && (
+					<div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
+						<div className="bg-background rounded-full p-2 text-primary shadow-lg animate-in zoom-in">
+							<CheckCircle className="w-6 h-6" />
+						</div>
 					</div>
 				)}
 			</div>
 
 			<CardHeader className="p-4 pb-2">
-				<div className="flex justify-between items-start gap-2">
-					<Badge variant="outline" className="text-[10px] h-5">
-						{course.level}
-					</Badge>
-					{inProgress && !isLocked && (
-						<Badge className="text-[10px] h-5 bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-200 shadow-none">
-							In Progress
-						</Badge>
-					)}
-				</div>
-				<CardTitle className="text-base font-semibold line-clamp-2 mt-2">
+				<CardTitle className="line-clamp-1 text-lg group-hover:text-primary transition-colors">
 					{course.title}
 				</CardTitle>
+				<CardDescription className="line-clamp-2 text-xs mt-1 h-8">
+					{course.smallDescription}
+				</CardDescription>
 			</CardHeader>
 
-			<CardContent className="p-4 pt-0 flex-1">
-				<p className="text-xs text-muted-foreground">
-					{Math.round(course.duration / 60)} Jam Pembelajaran
-				</p>
+			<CardContent className="p-4 pt-2 grow">
+				{/* Footer Metadata Baru: Fokus ke Kuantitas Materi */}
+				<div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+					<div className="flex items-center gap-1.5">
+						<BookOpen className="w-3.5 h-3.5" />
+						<span className="font-medium">
+							{totalLessons === 0 ? "Coming Soon" : `${totalLessons} Lessons`}
+						</span>
+					</div>
+				</div>
 			</CardContent>
 
-			<CardFooter className="p-4 pt-0 mt-auto">
-				<Button
-					variant={isCompleted ? "outline" : "default"}
-					size="sm"
-					className="w-full gap-2"
-					disabled={isLocked}
-				>
-					{!isLocked && <PlayCircle className="h-4 w-4" />}
-					{isLocked
-						? "Terkunci"
-						: isCompleted
-							? "Ulangi Materi"
-							: inProgress
-								? "Lanjutkan"
-								: "Mulai Belajar"}
-				</Button>
+			<CardFooter className="p-4 pt-0">
+				{isEnrolled ? (
+					<Button variant="secondary" className="w-full" disabled>
+						Already Enrolled
+					</Button>
+				) : (
+					<Button
+						variant={isSelected ? "default" : "outline"}
+						className={cn("w-full gap-2", isSelected && "bg-primary")}
+						onClick={() => onSelect?.(course.id)}
+					>
+						{isSelected ? "Selected" : "Select Course"}
+					</Button>
+				)}
 			</CardFooter>
 		</Card>
-	);
-
-	if (isLocked) {
-		return (
-			<TooltipProvider>
-				<Tooltip delayDuration={0}>
-					<TooltipTrigger asChild>
-						<div className="h-full select-none">
-							<CardContentInner />
-						</div>
-					</TooltipTrigger>
-					<TooltipContent className="bg-destructive text-destructive-foreground">
-						<p className="flex items-center gap-2">
-							<Lock className="h-3 w-3" />
-							Selesaikan Kurikulum Utama untuk membuka materi ini.
-						</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-		);
-	}
-
-	return (
-		<Link
-			href={`/dashboard/${course.slug}`}
-			className="h-full block focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-lg"
-		>
-			<CardContentInner />
-		</Link>
 	);
 }

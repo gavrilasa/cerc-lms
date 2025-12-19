@@ -15,7 +15,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { selectCurriculum } from "@/app/(auth)/onboarding/actions";
+import { selectCurriculum } from "@/app/(auth)/select-curriculum/actions";
 import type { CurriculumOption } from "@/app/data/curriculum/get-curriculum-by-division";
 
 interface CurriculumSelectionFormProps {
