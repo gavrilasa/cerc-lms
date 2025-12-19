@@ -26,10 +26,8 @@ export async function updateLesson(
 				id: lessonId,
 			},
 			data: {
-				title: result.data.name,
+				title: result.data.title,
 				description: result.data.description,
-				thumbnailKey: result.data.thumbnailKey,
-				videoKey: result.data.videoKey,
 			},
 		});
 

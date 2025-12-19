@@ -39,7 +39,7 @@ export function NewLessonModal({
 	const form = useForm<LessonSchemaType>({
 		resolver: zodResolver(lessonSchema),
 		defaultValues: {
-			name: "",
+			title: "",
 			courseId: courseId,
 			chapterId: chapterId,
 		},
@@ -89,10 +89,10 @@ export function NewLessonModal({
 					<form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
 						<FormField
 							control={form.control}
-							name="name"
+							name="title"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Name </FormLabel>
+									<FormLabel>Title </FormLabel>
 									<FormControl>
 										<Input placeholder="Lesson Name" {...field} />
 									</FormControl>

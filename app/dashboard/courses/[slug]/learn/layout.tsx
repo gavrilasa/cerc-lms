@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { CourseSidebar } from "./[lessonId]/_components/CourseSidebar";
 import { getCourseSidebarData } from "@/app/data/course/get-course-sidebar-data";
+import { LearnLayoutWrapper } from "./[lessonId]/_components/LearnLayoutWrapper";
 
 interface iAppProps {
 	params: Promise<{ slug: string }>;
@@ -10,14 +10,10 @@ interface iAppProps {
 export default async function CourseLayout({ params, children }: iAppProps) {
 	const { slug } = await params;
 
-	const course = await getCourseSidebarData(slug);
+	// Fetch data di server
+	const data = await getCourseSidebarData(slug);
 
 	return (
-		<div className="flex flex-1">
-			<div className="w-80 border-r border-border shrink-0">
-				<CourseSidebar course={course.course} />
-			</div>
-			<div className="flex-1 overflow-hidden">{children}</div>
-		</div>
+		<LearnLayoutWrapper course={data.course}>{children}</LearnLayoutWrapper>
 	);
 }

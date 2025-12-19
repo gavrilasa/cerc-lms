@@ -54,12 +54,9 @@ export async function getAllCourses({
 			id: true,
 			title: true,
 			smallDescription: true,
-			duration: true,
-			level: true,
 			status: true,
 			fileKey: true,
 			slug: true,
-			category: true,
 			division: true,
 		},
 	});

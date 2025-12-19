@@ -1,20 +1,6 @@
 import { z } from "zod";
 
-export const courseLevels = ["Beginner", "Intermediate", "Advanced"] as const;
 export const courseStatus = ["Draft", "Published", "Archived"] as const;
-export const courseCategories = [
-	"Development",
-	"Business",
-	"Finance",
-	"IT & Software",
-	"Office Productivity",
-	"Personal Development",
-	"Design",
-	"Marketing",
-	"Health & Fitness",
-	"Music",
-	"Teaching & Academics",
-] as const;
 export const divisions = [
 	"SOFTWARE",
 	"EMBEDDED",
@@ -31,12 +17,6 @@ export const courseSchema = z.object({
 	description: z
 		.string()
 		.min(3, { message: "Description must be at least 3 characters long" }),
-	duration: z
-		.number()
-		.min(1, { message: "Duration must be at least 1 hour" })
-		.max(500, { message: "Duration cannot exceed 500 hours" }),
-	level: z.enum(courseLevels, { message: "Level is required" }),
-	category: z.enum(courseCategories, { message: "Category is Required" }),
 	fileKey: z.string().min(1, { message: "File key cannot be empty" }),
 	division: z.enum(divisions).optional(),
 	smallDescription: z
@@ -50,24 +30,22 @@ export const courseSchema = z.object({
 });
 
 export const chapterSchema = z.object({
-	name: z
+	title: z
 		.string()
-		.min(3, { message: "Name must be at least 3 characters long" }),
+		.min(3, { message: "Title must be at least 3 characters long" }),
 	courseId: z.string().uuid({ message: "Invalid course Id" }),
 });
 
 export const lessonSchema = z.object({
-	name: z
+	title: z
 		.string()
-		.min(3, { message: "Name must be at least 3 characters long" }),
+		.min(3, { message: "Title must be at least 3 characters long" }),
 	courseId: z.string().uuid({ message: "Invalid course Id" }),
 	chapterId: z.string().uuid({ message: "Invalid chapter Id" }),
 	description: z
 		.string()
 		.min(3, { message: "Description must be at least 3 characters long" })
 		.optional(),
-	thumbnailKey: z.string().optional(),
-	videoKey: z.string().optional(),
 });
 
 export type CourseSchemaType = z.infer<typeof courseSchema>;

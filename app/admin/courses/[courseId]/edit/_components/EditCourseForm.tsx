@@ -4,10 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
 	courseSchema,
 	CourseSchemaType,
-	courseLevels,
 	courseStatus,
-	courseCategories,
-	divisions, // Import divisions
+	divisions,
 } from "@/lib/zodSchemas";
 import { Loader2, PlusIcon, SparkleIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -30,7 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { RichTextEditor } from "@/components/rich-text-editor/Editor";
+import { CourseRichTextEditor } from "@/components/rich-text-editor/CourseEditor";
 import { Uploader } from "@/components/file-uploader/Uploader";
 import { tryCatch } from "@/hooks/try-catch";
 import { useTransition } from "react";
@@ -57,9 +55,6 @@ export function EditCourseForm({
 			title: data.title,
 			description: data.description,
 			fileKey: data.fileKey,
-			duration: data.duration,
-			level: data.level,
-			category: data.category as CourseSchemaType["category"],
 			smallDescription: data.smallDescription,
 			slug: data.slug,
 			status: data.status,
@@ -189,7 +184,7 @@ export function EditCourseForm({
 						<FormItem className="w-full">
 							<FormLabel>Description</FormLabel>
 							<FormControl>
-								<RichTextEditor field={field} />
+								<CourseRichTextEditor field={field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -215,82 +210,6 @@ export function EditCourseForm({
 				/>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<FormField
-						control={form.control}
-						name="category"
-						render={({ field }) => (
-							<FormItem className="w-full">
-								<FormLabel>Category</FormLabel>
-								<Select
-									onValueChange={field.onChange}
-									defaultValue={field.value}
-								>
-									<FormControl>
-										<SelectTrigger className="w-full">
-											<SelectValue placeholder="Select Category" />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										{courseCategories.map((category) => (
-											<SelectItem key={category} value={category}>
-												{category}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="level"
-						render={({ field }) => (
-							<FormItem className="w-full">
-								<FormLabel>Level</FormLabel>
-								<Select
-									onValueChange={field.onChange}
-									defaultValue={field.value}
-								>
-									<FormControl>
-										<SelectTrigger className="w-full">
-											<SelectValue placeholder="Select Level" />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										{courseLevels.map((level) => (
-											<SelectItem key={level} value={level}>
-												{level}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</FormItem>
-						)}
-					/>
-
-					<FormField
-						control={form.control}
-						name="duration"
-						render={({ field: { value, onChange, ...field } }) => (
-							<FormItem className="w-full">
-								<FormLabel>Duration (hours)</FormLabel>
-								<FormControl>
-									<Input
-										placeholder="Duration"
-										type="number"
-										value={value || ""}
-										onChange={(e) => {
-											const numValue = e.target.valueAsNumber;
-											onChange(isNaN(numValue) ? 0 : numValue);
-										}}
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
 					<FormField
 						control={form.control}
 						name="status"

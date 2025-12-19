@@ -1,108 +1,176 @@
-import { getCourse } from "@/app/data/course/get-course";
-import { userIsEnrolled } from "@/app/data/user/user-is-enrolled";
-import { notFound } from "next/navigation";
-import { EnrollmentAction } from "./_components/EnrollmentAction";
-import { CourseSyllabus } from "./_components/CourseSyllabus";
-import { Badge } from "@/components/ui/badge";
+import { getCourseBySlug } from "@/app/data/course/get-course-by-slug";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CourseThumbnail } from "./_components/CourseThumbnail";
-import { CalendarDays, Clock, BarChart } from "lucide-react";
+import { BookOpen, Lock } from "lucide-react";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { DivisionBadge } from "@/components/general/DivisionBadge";
+import { Division } from "@/lib/generated/prisma/enums";
+import { requireUser } from "@/app/data/user/require-user";
+import prisma from "@/lib/db";
+import { EnrollmentAction } from "./_components/EnrollmentAction";
 
-// Tipe Params harus sesuai dengan Next.js 15+ (Promise)
-type Params = Promise<{ slug: string }>;
+interface TiptapNode {
+	type?: string;
+	text?: string;
+	content?: TiptapNode[];
+}
 
-export default async function CourseDetailPage(props: { params: Params }) {
-	const params = await props.params;
+interface TiptapDoc {
+	type: "doc";
+	content?: TiptapNode[];
+}
 
-	const course = await getCourse(params.slug);
+// Utilitas Parsing JSON Deskripsi
+function getJSONContent(description: string | null) {
+	if (!description) return "No description available";
+	try {
+		const json = JSON.parse(description) as TiptapDoc;
 
-	if (!course) {
-		return notFound();
+		// Cek struktur Tiptap
+		if (json.content && Array.isArray(json.content)) {
+			return json.content
+				.map((node) => {
+					if (node.content && Array.isArray(node.content)) {
+						return node.content
+							.map((innerNode) => innerNode.text || "")
+							.join(" ");
+					}
+					return node.text || "";
+				})
+				.join("\n\n");
+		}
+		return description;
+	} catch {
+		return description;
 	}
+}
 
-	// Sekarang fungsi ini sudah tersedia dengan nama yang benar
-	const isEnrolled = await userIsEnrolled(course.id);
+export default async function CourseDetailPage({
+	params,
+}: {
+	params: Promise<{ slug: string }>;
+}) {
+	const { slug } = await params;
+	const course = await getCourseBySlug(slug);
 
-	// Sorting manual sebagai fallback (meski di DB sudah di-sort)
-	const sortedChapters = course.chapter.sort((a, b) => a.position - b.position);
-	const firstChapter = sortedChapters[0];
-	const firstLesson = firstChapter?.lessons.sort(
-		(a, b) => a.position - b.position
-	)[0];
+	if (!course) return notFound();
+
+	// 1. Ambil User & Cek Enrollment
+	const user = await requireUser();
+	const enrollment = await prisma.enrollment.findUnique({
+		where: {
+			userId_courseId: {
+				userId: user.id,
+				courseId: course.id,
+			},
+		},
+	});
+
+	// 2. Hitung total lessons
+	const totalLessons = course.chapter.reduce(
+		(acc, chapter) => acc + chapter.lessons.length,
+		0
+	);
+
+	// 3. Cari Lesson Pertama untuk tombol "Lanjutkan Belajar"
+	// Ambil chapter pertama, lalu lesson pertama dari chapter tersebut
+	const firstChapter = course.chapter[0];
+	const firstLesson = firstChapter?.lessons[0];
 	const firstLessonId = firstLesson?.id;
 
 	return (
-		<div className="container mx-auto py-8 space-y-8 max-w-5xl">
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-				<div className="lg:col-span-2 space-y-6">
-					<div className="space-y-4">
-						<div className="flex items-center gap-2">
-							<Badge variant="secondary" className="uppercase tracking-wider">
-								{/* Division sekarang ada di tipe data */}
-								{course.division}
-							</Badge>
-							<Badge variant="outline">{course.level}</Badge>
-							<Badge
-								className={
-									course.status === "Published"
-										? "bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-200"
-										: "bg-yellow-500/10 text-yellow-600 border-yellow-200"
-								}
-							>
-								{course.status}
-							</Badge>
-						</div>
-
-						<h1 className="text-4xl font-bold tracking-tight text-foreground">
+		<div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+				{/* Kolom Kiri: Detail Konten */}
+				<div className="lg:col-span-2 space-y-8">
+					<div>
+						<h1 className="text-3xl font-bold tracking-tight mb-4">
 							{course.title}
 						</h1>
-
-						<p className="text-lg text-muted-foreground leading-relaxed">
-							{course.smallDescription}
-						</p>
-					</div>
-
-					<div className="flex items-center gap-6 text-sm text-muted-foreground">
-						<div className="flex items-center gap-2">
-							<Clock className="w-4 h-4" />
-							<span>{Math.round(course.duration / 60)} Jam Konten</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<BarChart className="w-4 h-4" />
-							<span>Level {course.level}</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<CalendarDays className="w-4 h-4" />
-							{/* UpdatedAt sekarang ada */}
-							<span>
-								Update: {new Date(course.updatedAt).toLocaleDateString("id-ID")}
-							</span>
+						<div className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+							{getJSONContent(course.description)}
 						</div>
 					</div>
 
-					<div className="pt-4">
-						<EnrollmentAction
-							courseId={course.id}
-							courseSlug={course.slug || params.slug}
-							isEnrolled={isEnrolled}
-							firstLessonId={firstLessonId}
-						/>
+					<Separator />
+
+					<div className="space-y-4">
+						<h2 className="text-xl font-semibold flex items-center gap-2">
+							<BookOpen className="w-5 h-5 text-primary" />
+							Curriculum
+						</h2>
+						<div className="space-y-4">
+							{course.chapter.map((chapter) => (
+								<Card key={chapter.id}>
+									<CardHeader className="py-3 bg-muted/20">
+										<CardTitle className="text-base font-medium">
+											{chapter.title}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="py-3">
+										<ul className="space-y-2">
+											{chapter.lessons.map((lesson) => (
+												<li
+													key={lesson.id}
+													className="flex items-center gap-2 text-sm text-muted-foreground"
+												>
+													<Lock className="w-3 h-3" />
+													{lesson.title}
+												</li>
+											))}
+										</ul>
+									</CardContent>
+								</Card>
+							))}
+						</div>
 					</div>
 				</div>
 
+				{/* Kolom Kanan: Sticky Sidebar/Enroll Card */}
 				<div className="lg:col-span-1">
-					<div className="rounded-xl overflow-hidden shadow-lg border bg-muted aspect-video relative">
-						<CourseThumbnail fileKey={course.fileKey} title={course.title} />
-					</div>
+					<Card className="sticky top-24 overflow-hidden border-2 border-primary/10 shadow-lg">
+						<div className="relative w-full aspect-video">
+							<Image
+								src={`https://${process.env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES}.t3.storage.dev/${course.fileKey}`}
+								alt={course.title}
+								fill
+								className="object-cover"
+							/>
+						</div>
+						<CardHeader>
+							<div className="mb-2">
+								<DivisionBadge division={course.division as Division} />
+							</div>
+							<CardTitle>{course.title}</CardTitle>
+							<CardDescription>{course.smallDescription}</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="flex items-center justify-between text-sm">
+								<span className="text-muted-foreground">Total Lessons</span>
+								<span className="font-semibold">{totalLessons} Lessons</span>
+							</div>
+							<Separator />
+
+							{/* Komponen EnrollmentAction menangani logika:
+                  - Jika isEnrolled=true -> Tampilkan "Lanjutkan Belajar"
+                  - Jika isEnrolled=false -> Tampilkan "Mulai Belajar Sekarang" (Action Enroll)
+              */}
+							<EnrollmentAction
+								courseId={course.id}
+								courseSlug={course.slug}
+								isEnrolled={!!enrollment} // Konversi object ke boolean
+								firstLessonId={firstLessonId}
+							/>
+						</CardContent>
+					</Card>
 				</div>
-			</div>
-
-			<Separator />
-
-			<div className="space-y-6">
-				<h2 className="text-2xl font-bold tracking-tight">Materi Kursus</h2>
-
-				<CourseSyllabus chapters={course.chapter} isEnrolled={isEnrolled} />
 			</div>
 		</div>
 	);

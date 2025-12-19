@@ -4,6 +4,7 @@ import { requireUser } from "@/app/data/user/require-user";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { type Division, EnrollmentStatus } from "@/lib/generated/prisma/enums";
+import { redirect } from "next/navigation";
 
 export async function enrollUser(courseId: string) {
 	// 1. Auth Check
@@ -117,4 +118,30 @@ export async function enrollUser(courseId: string) {
 			error: "Terjadi kesalahan saat memproses pendaftaran. Silakan coba lagi.",
 		};
 	}
+}
+
+export async function enrollCourse(courseId: string) {
+	const user = await requireUser();
+
+	// Cek apakah sudah enrolled (untuk mencegah duplikasi)
+	const existingEnrollment = await prisma.enrollment.findUnique({
+		where: {
+			userId_courseId: {
+				userId: user.id,
+				courseId: courseId,
+			},
+		},
+	});
+
+	if (!existingEnrollment) {
+		await prisma.enrollment.create({
+			data: {
+				userId: user.id,
+				courseId: courseId,
+			},
+		});
+	}
+
+	revalidatePath("/dashboard");
+	redirect("/dashboard");
 }

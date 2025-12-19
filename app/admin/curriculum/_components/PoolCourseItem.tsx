@@ -1,7 +1,6 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { DesignItem } from "./CurriculumDesignBuilder";
@@ -18,14 +17,6 @@ export function PoolCourseItem({ item, onAdd, disabled }: PoolCourseItemProps) {
 			<div className="min-w-0 pr-2">
 				<div className="font-medium text-sm truncate" title={item.title}>
 					{item.title}
-				</div>
-				<div className="flex items-center gap-2 mt-1">
-					<Badge variant="secondary" className="text-[10px] px-1.5 h-5">
-						{item.level}
-					</Badge>
-					<span className="text-[10px] text-muted-foreground truncate">
-						{item.category}
-					</span>
 				</div>
 			</div>
 			<Button

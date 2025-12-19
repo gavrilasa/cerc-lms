@@ -52,7 +52,7 @@ const FONT_FAMILIES = [
 const FONT_SIZES = ["12px", "14px", "16px", "18px", "24px", "32px"];
 const LINE_HEIGHTS = ["1", "1.15", "1.5", "1.75", "2"];
 
-export function Menubar({ editor, defaults }: iAppProps) {
+export function CourseMenubar({ editor, defaults }: iAppProps) {
 	if (!editor) return null;
 
 	const attrs = editor.getAttributes("textStyle") ?? {};

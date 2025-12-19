@@ -16,12 +16,9 @@ export async function adminGetCourse(id: string) {
 			title: true,
 			description: true,
 			fileKey: true,
-			duration: true,
-			level: true,
 			status: true,
 			slug: true,
 			smallDescription: true,
-			category: true,
 			division: true,
 			chapter: {
 				select: {
@@ -34,8 +31,6 @@ export async function adminGetCourse(id: string) {
 							title: true,
 							description: true,
 							position: true,
-							thumbnailKey: true,
-							videoKey: true,
 						},
 					},
 				},

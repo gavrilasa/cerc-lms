@@ -11,15 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConstructUrl } from "@/hooks/use-construct-url";
-import {
-	ArrowRight,
-	Eye,
-	MoreVertical,
-	Pencil,
-	School,
-	TimerIcon,
-	Trash2,
-} from "lucide-react";
+import { ArrowRight, Eye, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -99,20 +91,6 @@ export function AdminCourseCard({ data }: iAppProps) {
 				<p className="line-clamp-2 text-sm text-muted-foreground leading-tight mt-2 h-10">
 					{data.smallDescription}
 				</p>
-
-				<div className="flex items-center gap-x-5 mt-4">
-					<div className="flex items-center gap-x-2">
-						<TimerIcon className="size-4 text-primary" />
-						<p className="text-sm text-muted-foreground">
-							{/* Asumsi data duration disimpan dalam menit */}
-							{Math.round(data.duration / 60)} Jam
-						</p>
-					</div>
-					<div className="flex items-center gap-x-2">
-						<School className="size-4 text-primary" />
-						<p className="text-sm text-muted-foreground">{data.level}</p>
-					</div>
-				</div>
 				<Link
 					href={`/admin/courses/${data.id}/edit`}
 					className={buttonVariants({

@@ -11,6 +11,7 @@ import {
 	courseSchema,
 	CourseSchemaType,
 	lessonSchema,
+	LessonSchemaType,
 } from "@/lib/zodSchemas";
 import { request } from "@arcjet/next";
 import { revalidatePath } from "next/cache";
@@ -206,7 +207,7 @@ export async function createChapter(
 
 			await tx.chapter.create({
 				data: {
-					title: result.data.name,
+					title: result.data.title,
 					courseId: result.data.courseId,
 					position: (maxPos?.position ?? 0) + 1,
 				},
@@ -228,7 +229,8 @@ export async function createChapter(
 }
 
 export async function createLesson(
-	values: ChapterSchemaType
+	// PERBAIKAN: Menggunakan LessonSchemaType, bukan ChapterSchemaType
+	values: LessonSchemaType
 ): Promise<ApiResponse> {
 	await requireAdmin();
 	try {
@@ -256,10 +258,9 @@ export async function createLesson(
 
 			await tx.lesson.create({
 				data: {
-					title: result.data.name,
+					title: result.data.title, // Menggunakan title
 					description: result.data.description,
-					videoKey: result.data.videoKey,
-					thumbnailKey: result.data.thumbnailKey,
+					// Hapus videoKey dan thumbnailKey
 					chapterId: result.data.chapterId,
 					position: (maxPos?.position ?? 0) + 1,
 				},

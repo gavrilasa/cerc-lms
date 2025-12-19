@@ -1,42 +1,41 @@
-import "server-only";
-
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export async function getCourse(slug: string) {
+export async function getCourseBySlug(slug: string) {
 	const course = await prisma.course.findUnique({
 		where: {
 			slug: slug,
+			status: "Published",
 		},
 		select: {
 			id: true,
 			title: true,
-			description: true,
-			fileKey: true,
-			smallDescription: true,
-			division: true,
-			status: true,
-			updatedAt: true,
 			slug: true,
-
+			description: true,
+			smallDescription: true,
+			fileKey: true,
+			division: true,
 			chapter: {
-				select: {
-					id: true,
-					title: true,
-					position: true,
+				where: {
 					lessons: {
-						select: {
-							id: true,
-							title: true,
-							position: true,
-						},
-						orderBy: {
-							position: "asc",
-						},
+						some: {},
 					},
 				},
 				orderBy: {
 					position: "asc",
+				},
+				select: {
+					id: true,
+					title: true,
+					lessons: {
+						orderBy: {
+							position: "asc",
+						},
+						select: {
+							id: true,
+							title: true,
+						},
+					},
 				},
 			},
 		},

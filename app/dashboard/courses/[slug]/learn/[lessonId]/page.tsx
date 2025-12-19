@@ -1,26 +1,60 @@
-import { getLessonContent } from "@/app/data/course/get-lesson-content";
-import { CourseContent } from "./_components/CourseContent";
-import { Suspense } from "react";
-import { LessonSkeleton } from "./_components/LessonSkeleton";
+import prisma from "@/lib/db";
+import { redirect } from "next/navigation";
+import { LessonMainWrapper } from "./_components/LessonMainWrapper";
 
-type Params = Promise<{ lessonId: string }>;
+type Params = Promise<{
+	lessonId: string;
+	slug: string;
+}>;
 
-export default async function LessonContentPage({
-	params,
-}: {
-	params: Params;
-}) {
-	const { lessonId } = await params;
+export default async function LessonPage({ params }: { params: Params }) {
+	const { lessonId, slug } = await params;
 
+	// 1. Fetch Lesson Data
+	// Kita perlu include Chapter -> Course untuk validasi dan data context
+	const lesson = await prisma.lesson.findUnique({
+		where: {
+			id: lessonId,
+		},
+		select: {
+			id: true,
+			title: true,
+			description: true,
+			chapterId: true,
+			Chapter: {
+				select: {
+					courseId: true,
+					Course: {
+						select: {
+							title: true,
+							slug: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	// 2. Validasi
+	if (!lesson) {
+		return redirect("/dashboard");
+	}
+
+	// Validasi Slug URL matches Lesson Data (Security/Consistency check)
+	if (lesson.Chapter.Course.slug !== slug) {
+		return redirect(
+			`/dashboard/courses/${lesson.Chapter.Course.slug}/learn/${lessonId}`
+		);
+	}
+
+	// 3. Render Client Wrapper
 	return (
-		<Suspense fallback={<LessonSkeleton />}>
-			<LessonContentLoader lessonId={lessonId} />
-		</Suspense>
+		<LessonMainWrapper
+			lessonId={lesson.id}
+			courseId={lesson.Chapter.courseId}
+			lessonTitle={lesson.title}
+			lessonContent={lesson.description || ""}
+			courseTitle={lesson.Chapter.Course.title}
+		/>
 	);
-}
-
-async function LessonContentLoader({ lessonId }: { lessonId: string }) {
-	const data = await getLessonContent(lessonId);
-
-	return <CourseContent data={data} />;
 }

@@ -32,15 +32,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const divisions = [
-	"SOFTWARE",
-	"EMBEDDED",
-	"MULTIMEDIA",
-	"NETWORKING",
-	"ARTIFICIAL_INTELLIGENCE",
-	"CYBER_SECURITY",
-] as const;
+import { divisions } from "@/lib/zodSchemas";
 
 const signUpSchema = z.object({
 	name: z.string().min(3, "Nama minimal 3 karakter"),

@@ -27,18 +27,32 @@ export async function getUserCurriculumDetails(userId: string) {
 							title: true,
 							slug: true,
 							fileKey: true,
-							duration: true,
-							level: true,
 							createdAt: true,
+							updatedAt: true,
 							smallDescription: true,
-							category: true,
+							description: true,
+							division: true,
+							userId: true,
+							status: true,
+							chapter: {
+								select: {
+									lessons: {
+										select: { id: true },
+									},
+								},
+							},
 							enrollment: {
 								where: {
 									userId: userId,
 								},
 								select: {
+									id: true,
 									status: true,
 									completedAt: true,
+									createdAt: true,
+									updatedAt: true,
+									userId: true,
+									courseId: true,
 								},
 							},
 						},
@@ -54,12 +68,12 @@ export async function getUserCurriculumDetails(userId: string) {
 		const course = pivot.course;
 		const enrollment = course.enrollment[0];
 
-		let status: "NotStarted" | "Active" | "Completed" = "NotStarted";
+		let enrollmentStatus: "NotStarted" | "Active" | "Completed" = "NotStarted";
 		if (enrollment) {
 			if (enrollment.completedAt) {
-				status = "Completed";
+				enrollmentStatus = "Completed";
 			} else {
-				status = "Active";
+				enrollmentStatus = "Active";
 			}
 		}
 
@@ -70,20 +84,34 @@ export async function getUserCurriculumDetails(userId: string) {
 			isLocked = user.curriculumStatus !== "COMPLETED";
 		}
 
+		const totalLessons = course.chapter.reduce(
+			(acc, ch) => acc + ch.lessons.length,
+			0
+		);
+
 		return {
 			id: course.id,
 			title: course.title,
 			slug: course.slug,
-			thumbnail: course.fileKey, // Mapping fileKey ke thumbnail
-			duration: course.duration,
-			level: course.level,
+			fileKey: course.fileKey,
 			smallDescription: course.smallDescription,
-			category: course.category,
-			status: status,
+			description: course.description,
+			division: course.division,
+			userId: course.userId,
+			createdAt: course.createdAt,
+			updatedAt: course.updatedAt,
+			status: course.status,
+
+			enrollmentStatus: enrollmentStatus,
 			isLocked: isLocked,
 			type: pivot.type,
 			order: pivot.order,
-			createdAt: course.createdAt,
+
+			_count: {
+				lessons: totalLessons,
+			},
+			lessons: [],
+			enrollment: course.enrollment,
 		};
 	});
 

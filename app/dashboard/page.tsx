@@ -5,6 +5,7 @@ import { CurriculumCourseCard } from "./_components/CurriculumCourseCard";
 import { EmptyState } from "@/components/general/EmptyState";
 import { Separator } from "@/components/ui/separator";
 import { requireUser } from "@/app/data/user/require-user";
+import Link from "next/link";
 
 export const metadata = {
 	title: "Dashboard Pembelajaran",
@@ -59,29 +60,24 @@ export default async function DashboardPage() {
 				{availableCourses.length > 0 ? (
 					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{availableCourses.map((course) => (
-							<CurriculumCourseCard
+							// Bungkus dengan Link agar user bisa melihat detail sebelum enroll
+							// Asumsi: /courses/[slug] adalah halaman public preview
+							<Link
 								key={course.id}
-								isLocked={false}
-								course={{
-									id: course.id,
-									title: course.title,
-									slug: `courses/${course.slug}`,
-									duration: course.duration,
-									level: course.level,
-									thumbnail: course.fileKey,
-									status: "NotStarted",
-									smallDescription: course.smallDescription,
-									category: course.category,
-									isLocked: false,
-									type: "ELECTIVE",
-									order: null,
-									createdAt: course.updatedAt,
-								}}
-							/>
+								href={`/dashboard/courses/${course.slug}`}
+								className="block h-full group"
+							>
+								<CurriculumCourseCard
+									// @ts-expect-error: Pastikan getAvailableCourses mengembalikan include: { _count: { select: { lessons: true } } }
+									course={course}
+									isEnrolled={false}
+									// Hapus properti isLocked, duration, level, dll yang sudah tidak dipakai
+								/>
+							</Link>
 						))}
 					</div>
 				) : (
-					<div className="py-12 text-center border-2 border-dashed rounded-lg">
+					<div className="py-12 text-center border-2 border-dashed rounded-lg bg-muted/10">
 						<p className="text-muted-foreground">
 							Tidak ada kursus baru yang tersedia saat ini untuk divisi Anda.
 						</p>

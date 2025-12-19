@@ -10,14 +10,14 @@ import {
 	FontFamily,
 } from "@tiptap/extension-text-style";
 
-import { Menubar } from "./Menubar";
+import { CourseMenubar } from "./CourseMenubar";
 
 const DEFAULT_FONT_FAMILY = "Inter";
 const DEFAULT_FONT_SIZE = "16px";
 const DEFAULT_LINE_HEIGHT = "1.5";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function RichTextEditor({ field }: { field: any }) {
+export function CourseRichTextEditor({ field }: { field: any }) {
 	const editor = useEditor({
 		extensions: [
 			StarterKit,
@@ -55,7 +55,7 @@ export function RichTextEditor({ field }: { field: any }) {
 
 	return (
 		<div className="w-full border border-input rounded-lg overflow-hidden dark:bg-input/30">
-			<Menubar
+			<CourseMenubar
 				editor={editor}
 				defaults={{
 					fontFamily: DEFAULT_FONT_FAMILY,

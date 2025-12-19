@@ -77,7 +77,7 @@ export function DashboardContent({ data }: DashboardContentProps) {
 								<CurriculumCourseCard
 									key={course.id}
 									course={course}
-									isLocked={false}
+									isLocked={course.isLocked}
 								/>
 							))}
 						</div>

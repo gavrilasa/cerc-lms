@@ -25,9 +25,6 @@ export async function getAvailableCourses() {
 			title: true,
 			smallDescription: true,
 			fileKey: true,
-			duration: true,
-			level: true,
-			category: true,
 			slug: true,
 			updatedAt: true,
 			_count: {
