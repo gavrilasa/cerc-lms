@@ -21,7 +21,7 @@ export default async function CurriculumDesignPage({ params }: PageProps) {
 		include: {
 			courses: {
 				include: {
-					course: true, // Ambil detail course (title, level, etc)
+					course: true,
 				},
 				orderBy: {
 					order: "asc",
@@ -35,7 +35,6 @@ export default async function CurriculumDesignPage({ params }: PageProps) {
 	}
 
 	// 2. Fetch Course Pool (Available Courses)
-	// Filter berdasarkan divisi kurikulum & exclude yang sudah ada di kurikulum ini
 	const poolCourses = await getAllCourses({
 		divisionFilter: curriculum.division as Division,
 		excludeCurriculumId: curriculum.id,
@@ -43,10 +42,12 @@ export default async function CurriculumDesignPage({ params }: PageProps) {
 
 	return (
 		<div className="flex flex-col h-[calc(100vh-4rem)]">
-			<div className="flex items-center justify-between px-6 py-4 border-b bg-background">
-				<div>
-					<h1 className="text-xl font-bold">Curriculum Designer</h1>
-					<p className="text-sm text-muted-foreground">
+			<div className="flex items-center justify-between p-4 border-b bg-background">
+				<div className="flex flex-col gap-1">
+					<h1 className="text-2xl font-bold tracking-tight">
+						Curriculum Structure
+					</h1>
+					<p className="text-muted-foreground">
 						{curriculum.title} ({curriculum.division})
 					</p>
 				</div>
@@ -56,14 +57,14 @@ export default async function CurriculumDesignPage({ params }: PageProps) {
 			<CurriculumDesignBuilder
 				curriculumId={curriculum.id}
 				initialCanvasItems={curriculum.courses.map((pivot) => ({
-					id: pivot.course.id, // Kita gunakan ID Course sebagai key utama di UI
+					id: pivot.course.id,
 					title: pivot.course.title,
 					type: pivot.type,
 				}))}
 				initialPoolItems={poolCourses.map((c) => ({
 					id: c.id,
 					title: c.title,
-					type: "CORE", // Default type saat di-drag dari pool
+					type: "CORE",
 				}))}
 			/>
 		</div>

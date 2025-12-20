@@ -9,6 +9,7 @@ import {
 	IconHelp,
 	IconSearch,
 	IconSettings,
+	IconLayout,
 } from "@tabler/icons-react";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavSecondary } from "@/components/sidebar/nav-secondary";
@@ -31,6 +32,11 @@ const data = {
 			title: "Dashboard",
 			url: "/dashboard",
 			icon: IconDashboard,
+		},
+		{
+			title: "Curriculum",
+			url: "/dashboard/curriculum",
+			icon: IconLayout,
 		},
 	],
 	navClouds: [

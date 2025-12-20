@@ -6,8 +6,8 @@ import { GripVertical, X, BookOpen, Layers } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { DesignItem } from "./CurriculumDesignBuilder";
 
@@ -49,56 +49,62 @@ export function SortableCourseItem({
 			ref={setNodeRef}
 			style={style}
 			className={cn(
-				"flex items-center gap-4 p-3 group relative transition-all",
+				"flex flex-row items-center justify-start gap-2 p-4 pr-3 group relative transition-all whitespace-nowrap",
+				"hover:border-primary/50",
 				!isCore &&
 					"border-dashed border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-900/10"
 			)}
 		>
-			{/* Drag Handle */}
+			{/* 1. Drag Handle */}
 			<div
 				{...attributes}
 				{...listeners}
 				className={cn(
-					"cursor-grab text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted",
+					"cursor-grab text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted/80 transition-colors",
 					disabled && "cursor-not-allowed opacity-50"
 				)}
 			>
-				<GripVertical className="h-5 w-5" />
+				<GripVertical className="h-4 w-4" />
 			</div>
 
-			<div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted text-xs font-mono text-muted-foreground">
+			{/* 2. Index Number */}
+			<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-mono font-medium text-muted-foreground">
 				{index}
 			</div>
 
-			<div className="flex-1 min-w-0">
-				<div className="flex items-center gap-2 mb-1">
-					<h4 className="font-medium truncate">{item.title}</h4>
-				</div>
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
-					{isCore ? (
-						<BookOpen className="h-3 w-3" />
-					) : (
-						<Layers className="h-3 w-3" />
-					)}
-					<span>{isCore ? "Wajib (Core)" : "Pilihan (Elective)"}</span>
-				</div>
+			{/* 3. Badge */}
+			<Badge
+				variant={isCore ? "secondary" : "outline"}
+				className={cn(
+					"h-5 px-1.5 gap-1 text-xs font-normal pointer-events-none",
+					!isCore &&
+						"text-yellow-600 border-yellow-500/30 bg-yellow-100/50 dark:text-yellow-400 dark:bg-yellow-900/20"
+				)}
+			>
+				{isCore ? (
+					<BookOpen className="h-3 w-3" />
+				) : (
+					<Layers className="h-3 w-3" />
+				)}
+				<span>{isCore ? "Core" : "Elective"}</span>
+			</Badge>
+
+			{/* 4. Title */}
+			<div className="flex items-center gap-2">
+				<h4 className="font-medium text-sm truncate max-w-[200px] md:max-w-[300px]">
+					{item.title}
+				</h4>
 			</div>
 
-			{/* Actions */}
-			<div className="flex items-center gap-6 mr-2">
-				<div className="flex items-center gap-2">
-					<Label
-						htmlFor={`type-${item.id}`}
-						className="text-xs text-muted-foreground font-normal"
-					>
-						{isCore ? "Core" : "Elective"}
-					</Label>
+			{/* 5. Actions (Toggle & Delete) - Pushed to Far Right */}
+			<div className="flex items-center gap-2 ml-auto pl-2">
+				<div className="flex items-center gap-2" title="Toggle Course Type">
 					<Switch
 						id={`type-${item.id}`}
 						checked={isCore}
 						onCheckedChange={onToggleType}
 						disabled={disabled}
-						className="data-[state=unchecked]:bg-yellow-500" // Visual cue for Elective
+						className="data-[state=unchecked]:bg-yellow-500"
 					/>
 				</div>
 
@@ -107,9 +113,9 @@ export function SortableCourseItem({
 					size="icon"
 					onClick={onRemove}
 					disabled={disabled}
-					className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+					className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full cursor-pointer"
 				>
-					<X className="h-4 w-4" />
+					<X className="h-3.5 w-3.5" />
 				</Button>
 			</div>
 		</Card>

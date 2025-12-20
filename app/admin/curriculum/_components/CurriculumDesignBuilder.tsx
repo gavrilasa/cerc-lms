@@ -31,7 +31,6 @@ import { SortableCourseItem } from "./SortableCourseItem";
 import { PoolCourseItem } from "./PoolCourseItem";
 import { CurriculumCourseType } from "@/lib/generated/prisma/enums";
 
-// Tipe Data Lokal UI
 export interface DesignItem {
 	id: string;
 	title: string;
@@ -57,7 +56,11 @@ export function CurriculumDesignBuilder({
 	const [poolItems, setPoolItems] = useState<DesignItem[]>(initialPoolItems);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
-	const [activeId, setActiveId] = useState<string | null>(null); // For DragOverlay
+	const [activeId, setActiveId] = useState<string | null>(null);
+
+	// For Drag Style
+	const activeItem = canvasItems.find((i) => i.id === activeId);
+	const activeIndex = canvasItems.findIndex((i) => i.id === activeId);
 
 	// DnD Sensors
 	const sensors = useSensors(
@@ -117,11 +120,10 @@ export function CurriculumDesignBuilder({
 	const handleSave = async () => {
 		setIsSaving(true);
 		try {
-			// Payload Preparation
 			const payloadItems = canvasItems.map((item, index) => ({
 				courseId: item.id,
 				type: item.type,
-				order: index + 1, // Urutan visual menjadi order database
+				order: index + 1,
 			}));
 
 			const result = await updateCurriculumStructure({
@@ -133,7 +135,7 @@ export function CurriculumDesignBuilder({
 				toast.error(result.error);
 			} else {
 				toast.success("Structure saved successfully!");
-				router.refresh(); // Sync server state
+				router.refresh();
 			}
 		} catch {
 			toast.error("An unexpected error occurred.");
@@ -151,19 +153,19 @@ export function CurriculumDesignBuilder({
 				onDragEnd={handleDragEnd}
 			>
 				{/* --- LEFT PANEL: COURSE POOL --- */}
-				<div className="w-1/3 border-r bg-muted/10 flex flex-col">
-					<div className="p-4 border-b space-y-4">
-						<h2 className="font-semibold flex items-center gap-2">
+				<div className="w-2/5 border-r bg-muted/10 flex flex-col">
+					<div className="h-[73px] px-4 border-b flex items-center justify-between gap-4">
+						<h2 className="font-semibold flex items-center gap-2 whitespace-nowrap">
 							Course Pool
-							<span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+							<span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground border">
 								{poolItems.length}
 							</span>
 						</h2>
-						<div className="relative">
+						<div className="relative flex-1 max-w-96">
 							<Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 							<Input
-								placeholder="Search courses..."
-								className="pl-8"
+								placeholder="Search..."
+								className="pl-8 h-9"
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								disabled={isSaving}
@@ -190,8 +192,8 @@ export function CurriculumDesignBuilder({
 				</div>
 
 				{/* --- RIGHT PANEL: CANVAS --- */}
-				<div className="flex-1 flex flex-col bg-background">
-					<div className="p-4 border-b flex items-center justify-between">
+				<div className="w-3/5 flex flex-col bg-background">
+					<div className="h-[73px] px-4 border-b flex items-center justify-between">
 						<h2 className="font-semibold flex items-center gap-2">
 							Curriculum Structure
 							<span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -201,6 +203,7 @@ export function CurriculumDesignBuilder({
 						<Button
 							onClick={handleSave}
 							disabled={isSaving || canvasItems.length === 0}
+							size="sm"
 						>
 							{isSaving ? (
 								<>
@@ -244,7 +247,6 @@ export function CurriculumDesignBuilder({
 					</ScrollArea>
 				</div>
 
-				{/* Drag Overlay for Smooth Visual */}
 				<DragOverlay
 					dropAnimation={{
 						sideEffects: defaultDropAnimationSideEffects({
@@ -252,10 +254,15 @@ export function CurriculumDesignBuilder({
 						}),
 					}}
 				>
-					{activeId ? (
-						<div className="bg-background border rounded-md p-4 shadow-xl opacity-80 w-[400px]">
-							{canvasItems.find((i) => i.id === activeId)?.title}
-						</div>
+					{activeId && activeItem ? (
+						// GUNAKAN KOMPONEN ASLI DISINI
+						<SortableCourseItem
+							item={activeItem}
+							index={activeIndex + 1}
+							onRemove={() => {}} // Kosongkan fungsi saat dragging
+							onToggleType={() => {}} // Kosongkan fungsi saat dragging
+							disabled={false} // Pastikan tidak terlihat disabled saat di-drag
+						/>
 					) : null}
 				</DragOverlay>
 			</DndContext>

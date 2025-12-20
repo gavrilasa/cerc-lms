@@ -98,20 +98,12 @@ export default function UserTable({ users }: UserTableProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-				<div className="w-full sm:w-72">
-					<Input
-						placeholder="Search users..."
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-
 				<div className="flex gap-2 w-full sm:w-auto">
 					<Select
 						defaultValue={searchParams.get("status") || "ALL"}
 						onValueChange={(val) => handleFilterChange("status", val)}
 					>
-						<SelectTrigger className="w-[150px]">
+						<SelectTrigger className="w-[150px] cursor-pointer">
 							<SelectValue placeholder="Status" />
 						</SelectTrigger>
 						<SelectContent>
@@ -127,7 +119,7 @@ export default function UserTable({ users }: UserTableProps) {
 						defaultValue={searchParams.get("division") || "ALL"}
 						onValueChange={(val) => handleFilterChange("division", val)}
 					>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[150px] cursor-pointer">
 							<SelectValue placeholder="Division" />
 						</SelectTrigger>
 						<SelectContent>
@@ -136,10 +128,15 @@ export default function UserTable({ users }: UserTableProps) {
 							<SelectItem value="EMBEDDED">Embedded</SelectItem>
 							<SelectItem value="MULTIMEDIA">Multimedia</SelectItem>
 							<SelectItem value="NETWORKING">Networking</SelectItem>
-							<SelectItem value="ARTIFICIAL_INTELLIGENCE">AI</SelectItem>
-							<SelectItem value="CYBER_SECURITY">Cyber Security</SelectItem>
 						</SelectContent>
 					</Select>
+				</div>
+				<div className="w-full sm:w-72">
+					<Input
+						placeholder="Search users..."
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+					/>
 				</div>
 			</div>
 

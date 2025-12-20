@@ -4,7 +4,7 @@ import type { Division, UserStatus } from "@/lib/generated/prisma/enums";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
-	title: "Manajemen User | Admin CERC",
+	title: "Users Management | Admin CERC",
 };
 
 interface AdminUsersPageProps {
@@ -27,10 +27,10 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
 	return (
 		<div className="p-4 space-y-4">
 			<div className="flex flex-col gap-1">
-				<h1 className="text-2xl font-bold tracking-tight">Manajemen User</h1>
+				<h1 className="text-2xl font-bold tracking-tight">Users Management</h1>
 				<p className="text-muted-foreground">
-					Kelola semua pengguna sistem (Verifikasi, Role, Status, dan
-					Penghapusan).
+					Manage All User on System (Verification, Assign Role, Assign Status
+					and Delete User)
 				</p>
 			</div>
 

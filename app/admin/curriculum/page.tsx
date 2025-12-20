@@ -34,7 +34,7 @@ import type { Division } from "@/lib/generated/prisma/enums";
 export default async function CurriculumPage() {
 	await requireAdmin();
 
-	const curricula = await prisma.curriculum.findMany({
+	const curriculum = await prisma.curriculum.findMany({
 		orderBy: { updatedAt: "desc" },
 		include: {
 			_count: {
@@ -47,38 +47,41 @@ export default async function CurriculumPage() {
 	});
 
 	return (
-		<div className="p-6 space-y-6">
-			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+		<div className="p-4 space-y-4">
+			<div className="flex flex-col sm:flex-row justify-between">
 				<div className="space-y-1">
 					<h1 className="text-2xl font-bold tracking-tight">
-						Manajemen Kurikulum
+						Curriculum Management
 					</h1>
 					<p className="text-muted-foreground">
-						Buat dan atur jalur pembelajaran (Roadmap) untuk setiap divisi.
+						Manage All Curriculum Based on Division.
 					</p>
 				</div>
 				<CreateCurriculumDialog />
 			</div>
 
-			{/* Grid List Kurikulum */}
-			<div className="grid gap-6 md:grid-cols-2">
-				{curricula.map((item) => (
+			<div className="grid gap-4 md:grid-cols-2">
+				{curriculum.map((item) => (
 					<Card
 						key={item.id}
-						className="flex flex-col group relative overflow-hidden transition-all hover:shadow-md"
+						className="flex flex-col group relative overflow-hidden transition-all hover:shadow-md gap-2"
 					>
-						<CardHeader className="pb-3">
-							<div className="flex justify-between items-start mb-2">
+						<CardHeader className="pb-1">
+							<div className="flex justify-between items-center">
 								<DivisionBadge division={item.division as Division} />
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<Button variant="ghost" size="icon" className="h-8 w-8">
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-8 w-8 cursor-pointer"
+										>
 											<MoreVertical className="h-4 w-4" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
-										<DropdownMenuItem className="text-destructive focus:text-destructive">
-											<Trash className="mr-2 h-4 w-4" />
+										<DropdownMenuItem className="text-destructive focus:text-destructive font-medium cursor-pointer">
+											<Trash className="mr-2 h-4 w-4 text-destructive" />
 											Arsipkan
 										</DropdownMenuItem>
 									</DropdownMenuContent>
@@ -87,23 +90,23 @@ export default async function CurriculumPage() {
 							<CardTitle className="text-lg line-clamp-1" title={item.title}>
 								{item.title}
 							</CardTitle>
-							<CardDescription className="line-clamp-2 text-xs mt-1 h-10">
+							<CardDescription className="line-clamp-2 mb-2">
 								{item.description}
 							</CardDescription>
 						</CardHeader>
 
-						<CardContent className="pb-3 grid grid-cols-2 gap-2 text-sm">
-							<div className="flex flex-col gap-1 p-2 bg-muted/50 rounded-md items-center justify-center text-center">
-								<Layers className="h-4 w-4 text-muted-foreground mb-1" />
+						<CardContent className="pb-2 grid grid-cols-2 gap-2 text-sm">
+							<div className="flex gap-2 px-6 py-4 bg-muted/50 rounded-md items-center text-center">
+								<Layers className="h-4 w-4 text-muted-foreground" />
 								<span className="font-bold">{item._count.courses}</span>
-								<span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+								<span className="text-xs text-muted-foreground uppercase tracking-wider">
 									Courses
 								</span>
 							</div>
-							<div className="flex flex-col gap-1 p-2 bg-muted/50 rounded-md items-center justify-center text-center">
-								<Users className="h-4 w-4 text-muted-foreground mb-1" />
+							<div className="flex gap-2 px-6 py-4 bg-muted/50 rounded-md items-center text-center">
+								<Users className="h-4 w-4 text-muted-foreground" />
 								<span className="font-bold">{item._count.users}</span>
-								<span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+								<span className="text-xs text-muted-foreground uppercase tracking-wider">
 									Students
 								</span>
 							</div>
@@ -118,7 +121,6 @@ export default async function CurriculumPage() {
 							</Button>
 						</CardFooter>
 
-						{/* Status Indicator */}
 						{item.status === "ARCHIVED" && (
 							<div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-[1px]">
 								<Badge variant="destructive">ARCHIVED</Badge>
@@ -127,8 +129,7 @@ export default async function CurriculumPage() {
 					</Card>
 				))}
 
-				{/* Empty State */}
-				{curricula.length === 0 && (
+				{curriculum.length === 0 && (
 					<div className="col-span-full py-12 flex flex-col items-center justify-center text-center border-2 border-dashed rounded-lg bg-muted/10">
 						<BookOpen className="h-10 w-10 text-muted-foreground/50 mb-4" />
 						<h3 className="text-lg font-semibold">Belum ada kurikulum</h3>

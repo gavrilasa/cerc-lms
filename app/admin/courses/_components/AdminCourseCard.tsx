@@ -24,8 +24,7 @@ export function AdminCourseCard({ data }: iAppProps) {
 
 	return (
 		<Card className="group relative py-0 gap-0 overflow-hidden">
-			{/* UPDATE: Menggunakan Divisi & Status sebagai indikator utama */}
-			<div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5 items-start">
+			<div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5 items-start">
 				<Badge className="bg-primary font-semibold hover:bg-primary shadow-sm">
 					{data.division}
 				</Badge>
@@ -38,13 +37,13 @@ export function AdminCourseCard({ data }: iAppProps) {
 				</Badge>
 			</div>
 
-			<div className="absolute top-2 right-2 z-10">
+			<div className="absolute top-4 right-4 z-10">
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
 							variant="secondary"
 							size="icon"
-							className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+							className="h-8 w-8 backdrop-blur-sm cursor-pointer"
 						>
 							<MoreVertical className="size-4" />
 						</Button>
@@ -56,7 +55,6 @@ export function AdminCourseCard({ data }: iAppProps) {
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuItem asChild>
-							{/* Redirect ke halaman public agar admin melihat apa yang dilihat user */}
 							<Link href={`/courses/${data.slug}`} target="_blank">
 								<Eye className="size-4 mr-2" /> Preview
 							</Link>
@@ -81,20 +79,23 @@ export function AdminCourseCard({ data }: iAppProps) {
 				/>
 			</div>
 
-			<CardContent className="p-4">
-				<Link
-					href={`/admin/courses/${data.id}/edit`}
-					className="font-medium line-clamp-2 hover:underline group-hover:text-primary transition-colors text-lg"
-				>
-					{data.title}
-				</Link>
-				<p className="line-clamp-2 text-sm text-muted-foreground leading-tight mt-2 h-10">
-					{data.smallDescription}
-				</p>
+			<CardContent className="p-4 flex flex-col h-full">
+				<div className="flex-1 mb-4">
+					<Link
+						href={`/admin/courses/${data.id}/edit`}
+						className="font-semibold line-clamp-2 hover:underline group-hover:text-primary transition-colors text-lg"
+					>
+						{data.title}
+					</Link>
+					<p className="line-clamp-2 text-sm text-muted-foreground mt-2">
+						{data.smallDescription}
+					</p>
+				</div>
+
 				<Link
 					href={`/admin/courses/${data.id}/edit`}
 					className={buttonVariants({
-						className: "w-full mt-4",
+						className: "w-full mt-auto",
 					})}
 				>
 					Edit Course <ArrowRight className="size-4 ml-2" />
