@@ -17,7 +17,7 @@ export async function getCourseSidebarData(slug: string) {
 			slug: true,
 			division: true,
 			smallDescription: true,
-			chapter: {
+			chapters: {
 				orderBy: {
 					position: "asc",
 				},
@@ -64,7 +64,7 @@ export async function getCourseSidebarData(slug: string) {
 		},
 	});
 
-	if (!enrollment || enrollment.status !== "Active") {
+	if (!enrollment || enrollment.status !== "ACTIVE") {
 		return notFound();
 	}
 

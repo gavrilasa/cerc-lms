@@ -1,3 +1,5 @@
+import "server-only";
+
 import { requireUser } from "@/app/data/user/require-user";
 import prisma from "@/lib/db";
 import { S3 } from "@/lib/S3Client";
@@ -41,7 +43,7 @@ export async function getCurriculumTimeline(): Promise<
 					slug: true,
 					fileKey: true,
 					// Mengambil Enrollment user ini untuk cek status Completed (Opsi A)
-					enrollment: {
+					enrollments: {
 						where: {
 							userId: user.id,
 						},
@@ -51,7 +53,7 @@ export async function getCurriculumTimeline(): Promise<
 						take: 1,
 					},
 					// FIX: Menggunakan 'chapter' (lowercase) sesuai schema.prisma
-					chapter: {
+					chapters: {
 						select: {
 							lessons: {
 								select: {
@@ -82,7 +84,7 @@ export async function getCurriculumTimeline(): Promise<
 
 			// a. Hitung Statistik Lesson (Total vs Completed)
 			// FIX: Mengakses 'course.chapter' (lowercase)
-			const allLessons = course.chapter.flatMap((c) => c.lessons);
+			const allLessons = course.chapters.flatMap((c) => c.lessons);
 			const totalLessons = allLessons.length;
 
 			// Hitung lesson yang memiliki entry progress 'completed: true'
@@ -91,7 +93,7 @@ export async function getCurriculumTimeline(): Promise<
 			).length;
 
 			// b. Ambil CompletedAt dari Enrollment
-			const completedAt = course.enrollment[0]?.completedAt ?? null;
+			const completedAt = course.enrollments[0]?.completedAt ?? null;
 
 			// c. Generate Presigned URL untuk Thumbnail
 			let thumbnailUrl: string | null = null;

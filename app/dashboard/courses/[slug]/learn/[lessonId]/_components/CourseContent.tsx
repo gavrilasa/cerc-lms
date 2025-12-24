@@ -12,12 +12,12 @@ import {
 	FontFamily,
 } from "@tiptap/extension-text-style";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, BookOpen } from "lucide-react";
+import { Loader2, CheckCircle, BookOpen, FileQuestion } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfetti } from "@/hooks/use-confetti";
-import { markAsCompleted } from "../actions"; // Pastikan file actions.ts ada di folder parent
+import { markAsCompleted } from "../actions";
 import {
 	Dialog,
 	DialogContent,
@@ -27,12 +27,53 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface CourseContentProps {
 	lessonId: string;
 	courseId: string;
 	content: string; // JSON string dari database
 	courseTitle: string;
+}
+
+/**
+ * Empty content state component
+ */
+function EmptyLessonContent() {
+	return (
+		<Alert variant="default" className="border-dashed">
+			<FileQuestion className="h-5 w-5" />
+			<AlertTitle>Konten Belum Tersedia</AlertTitle>
+			<AlertDescription>
+				Materi untuk lesson ini sedang dalam proses pembuatan. Silakan cek
+				kembali nanti atau lanjutkan ke lesson berikutnya.
+			</AlertDescription>
+		</Alert>
+	);
+}
+
+/**
+ * Check if content is empty or invalid
+ */
+function isContentEmpty(content: string): boolean {
+	if (!content || content.trim() === "") return true;
+
+	try {
+		const parsed = JSON.parse(content);
+		// Check if it's an empty TipTap document
+		if (parsed.type === "doc" && (!parsed.content || parsed.content.length === 0)) {
+			return true;
+		}
+		// Check if all content nodes are empty paragraphs
+		if (parsed.content?.every((node: { type: string; content?: unknown[] }) => 
+			node.type === "paragraph" && (!node.content || node.content.length === 0)
+		)) {
+			return true;
+		}
+		return false;
+	} catch {
+		return true;
+	}
 }
 
 export function CourseContent({
@@ -46,10 +87,13 @@ export function CourseContent({
 	const router = useRouter();
 	const { triggerConfetti } = useConfetti();
 
+	// Check if content is empty
+	const isEmpty = isContentEmpty(content);
+
 	// Inisialisasi Editor dalam mode Read-Only
 	const editor = useEditor({
-		editable: false, // KUNCI: Mode baca saja
-		immediatelyRender: false, // Hindari hydration mismatch
+		editable: false,
+		immediatelyRender: false,
 		extensions: [
 			StarterKit,
 			TextStyle,
@@ -64,7 +108,7 @@ export function CourseContent({
 				},
 			}),
 			Youtube.configure({
-				controls: true, // Izinkan user memutar video
+				controls: true,
 				nocookie: true,
 				HTMLAttributes: {
 					class: "w-full aspect-video rounded-lg shadow-sm border my-4",
@@ -73,18 +117,23 @@ export function CourseContent({
 		],
 		editorProps: {
 			attributes: {
-				// Styling prose agar enak dibaca (mirip Notion/Medium)
 				class:
 					"prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert focus:outline-none !w-full !max-w-none",
 			},
 		},
-		content: content ? JSON.parse(content) : { type: "doc", content: [] },
+		content: content && !isEmpty ? JSON.parse(content) : { type: "doc", content: [] },
 	});
 
 	const handleMarkAsDone = async () => {
 		setIsLoading(true);
 		try {
 			const result = await markAsCompleted(lessonId, courseId);
+
+			// Handle error from server action
+			if (!result.success) {
+				toast.error(result.error || "Gagal menyimpan progress");
+				return;
+			}
 
 			// Refresh router agar sidebar progress terupdate
 			router.refresh();
@@ -93,15 +142,8 @@ export function CourseContent({
 				triggerConfetti();
 				setShowCompleteModal(true);
 			} else if (result.nextLessonId) {
-				// Navigasi ke lesson berikutnya
-				router.push(result.nextLessonId); // Asumsi result.nextLessonId adalah full URL atau ID yang diproses page
-				// Note: Idealnya server action mengembalikan path lengkap, misal:
-				// /dashboard/courses/[slug]/learn/[nextLessonId]
-				// Jika hanya ID, kita perlu construct URLnya.
-				// Asumsi: Server action mengembalikan FULL PATH untuk kemudahan,
-				// ATAU kita construct di sini jika punya slug.
-				// Mari kita asumsikan result.nextLessonId adalah ID lesson saja, kita butuh slug di props.
-				// router.push(`/dashboard/courses/${slug}/learn/${result.nextLessonId}`);
+				// Navigate to next lesson (passing only the ID, router handles the rest)
+				router.push(result.nextLessonId);
 			} else {
 				toast.success("Lesson completed!");
 			}
@@ -119,8 +161,12 @@ export function CourseContent({
 
 	return (
 		<div className="pb-20">
-			{/* Konten Materi */}
-			<EditorContent editor={editor} />
+			{/* Konten Materi atau Empty State */}
+			{isEmpty ? (
+				<EmptyLessonContent />
+			) : (
+				<EditorContent editor={editor} />
+			)}
 
 			{/* Divider */}
 			<div className="my-12 h-px bg-border" />
@@ -177,7 +223,7 @@ export function CourseContent({
 						</Button>
 						<Button
 							className="w-full gap-2"
-							onClick={() => router.push("/dashboard?tab=my-courses")} // Atau ke sertifikat jika ada
+							onClick={() => router.push("/dashboard?tab=my-courses")}
 						>
 							<BookOpen className="size-4" />
 							Browse More Courses

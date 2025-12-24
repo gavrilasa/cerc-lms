@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { tryCatch } from "@/hooks/try-catch";
+import { tryCatch } from "@/lib/utils/try-catch";
 import Link from "next/link";
 import { useTransition } from "react";
 import { deleteCourse } from "./action";

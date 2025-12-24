@@ -11,7 +11,7 @@ export async function adminGetDashboardStats() {
 			prisma.user.count(),
 			prisma.user.count({
 				where: {
-					enrollment: {
+					enrollments: {
 						some: {},
 					},
 				},

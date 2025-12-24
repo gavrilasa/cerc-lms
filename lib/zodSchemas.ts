@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const courseStatus = ["Draft", "Published", "Archived"] as const;
+export const courseStatus = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 export const divisions = [
 	"SOFTWARE",
 	"EMBEDDED",

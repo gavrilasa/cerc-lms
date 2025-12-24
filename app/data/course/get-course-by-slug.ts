@@ -1,3 +1,5 @@
+import "server-only";
+
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 
@@ -5,7 +7,7 @@ export async function getCourseBySlug(slug: string) {
 	const course = await prisma.course.findUnique({
 		where: {
 			slug: slug,
-			status: "Published",
+			status: "PUBLISHED",
 		},
 		select: {
 			id: true,
@@ -15,7 +17,7 @@ export async function getCourseBySlug(slug: string) {
 			smallDescription: true,
 			fileKey: true,
 			division: true,
-			chapter: {
+			chapters: {
 				where: {
 					lessons: {
 						some: {},

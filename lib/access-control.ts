@@ -1,6 +1,9 @@
 import { type User } from "better-auth/types";
-import type { Division, Role } from "./generated/prisma/enums";
+import { Division, Role, ROLE_LEVELS } from "./constants";
 
+/**
+ * Extended user type with CERC-specific fields
+ */
 export interface AuthUser extends User {
 	role: Role;
 	division?: Division | null;
@@ -11,14 +14,10 @@ export interface AuthUser extends User {
 	curriculumStatus?: string | null;
 }
 
-const ROLE_LEVELS: Record<Role, number> = {
-	GUEST: 0,
-	USER: 1,
-	MEMBER: 2,
-	MENTOR: 3,
-	ADMIN: 4,
-};
-
+/**
+ * Check if user has at least the required role level.
+ * Uses role hierarchy: GUEST < USER < MEMBER < MENTOR < ADMIN
+ */
 export function checkRole(
 	user: AuthUser | null | undefined,
 	requiredRole: Role
@@ -31,6 +30,10 @@ export function checkRole(
 	return userLevel >= requiredLevel;
 }
 
+/**
+ * Check if user has access to a specific division.
+ * ADMIN has access to all divisions.
+ */
 export function checkDivisionAccess(
 	user: AuthUser | null | undefined,
 	targetDivision: Division
@@ -42,6 +45,10 @@ export function checkDivisionAccess(
 	return user.division === targetDivision;
 }
 
+/**
+ * Check if user can manage (create/edit) courses in a division.
+ * Requires at least MENTOR role and division access.
+ */
 export function canManageCourse(
 	user: AuthUser | null | undefined,
 	courseDivision: Division

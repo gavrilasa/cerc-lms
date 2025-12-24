@@ -3,29 +3,75 @@
 import { requireUser } from "@/app/data/user/require-user";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { type Division, EnrollmentStatus } from "@/lib/generated/prisma/enums";
+import {
+	type Division,
+	EnrollmentStatus,
+	CourseStatus,
+} from "@/lib/generated/prisma/enums";
 import { redirect } from "next/navigation";
+import { z } from "zod";
+import { type AuthUser } from "@/lib/access-control";
 
-export async function enrollUser(courseId: string) {
+// Zod schema untuk validasi input
+const enrollmentInputSchema = z.object({
+	courseId: z.string().uuid({ message: "Invalid Course ID format" }),
+});
+
+interface EnrollmentResult {
+	success?: boolean;
+	error?: string;
+	message?: string;
+}
+
+/**
+ * Enroll user ke course dengan validasi lengkap:
+ * - Course status harus PUBLISHED
+ * - User division harus match (kecuali ADMIN)
+ * - Gating system untuk curriculum check
+ */
+export async function enrollUser(courseId: string): Promise<EnrollmentResult> {
 	// 1. Auth Check
-	const user = await requireUser();
+	const sessionUser = await requireUser();
+	const user = sessionUser as AuthUser;
 
-	if (!courseId || typeof courseId !== "string") {
-		return { error: "Invalid Course ID." };
+	// 2. Input Validation dengan Zod
+	const validation = enrollmentInputSchema.safeParse({ courseId });
+	if (!validation.success) {
+		return { error: validation.error.issues[0]?.message || "Invalid input" };
 	}
 
 	try {
-		// 2. Get Data Kursus Target
+		// 3. Get Course Data dengan status dan division
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
-			select: { id: true, slug: true },
+			select: {
+				id: true,
+				slug: true,
+				status: true,
+				division: true,
+			},
 		});
 
 		if (!course) {
 			return { error: "Kursus tidak ditemukan." };
 		}
 
-		// 3. Idempotency Check (Sudah enroll belum?)
+		// 4. [NEW] Course Status Check - hanya PUBLISHED yang bisa di-enroll
+		if (course.status !== CourseStatus.PUBLISHED) {
+			return { error: "Kursus ini belum tersedia untuk pendaftaran." };
+		}
+
+		// 5. [NEW] Division Check - user harus match division (kecuali ADMIN)
+		if (user.role !== "ADMIN") {
+			if (!user.division) {
+				return { error: "Akun Anda belum terdaftar pada divisi manapun." };
+			}
+			if (user.division !== course.division) {
+				return { error: "Kursus ini tidak tersedia untuk divisi Anda." };
+			}
+		}
+
+		// 6. Idempotency Check (Sudah enroll belum?)
 		const existingEnrollment = await prisma.enrollment.findUnique({
 			where: {
 				userId_courseId: {
@@ -43,9 +89,8 @@ export async function enrollUser(courseId: string) {
 		}
 
 		// =========================================================================
-		// 4. GATING SYSTEM CHECK
+		// 7. GATING SYSTEM CHECK (Curriculum prerequisite)
 		// =========================================================================
-
 		const userCurriculum = await prisma.curriculum.findFirst({
 			where: {
 				division: user.division as Division,
@@ -83,9 +128,7 @@ export async function enrollUser(courseId: string) {
 						},
 					});
 
-					// PERBAIKAN:
-					// Schema EnrollmentStatus tidak punya 'Completed'.
-					// Kita cek field 'completedAt' (DateTime?) untuk validasi kelulusan.
+					// Cek field 'completedAt' untuk validasi kelulusan
 					if (!prevEnrollment || !prevEnrollment.completedAt) {
 						return {
 							error:
@@ -97,17 +140,16 @@ export async function enrollUser(courseId: string) {
 		}
 		// =========================================================================
 
-		// 5. Database Transaction
+		// 8. Create Enrollment
 		await prisma.enrollment.create({
 			data: {
 				userId: user.id,
 				courseId: course.id,
-				// PERBAIKAN: Gunakan .Active (sesuai Schema), bukan .ACTIVE
-				status: EnrollmentStatus.Active,
+				status: EnrollmentStatus.ACTIVE,
 			},
 		});
 
-		// 6. Revalidation
+		// 9. Revalidation
 		revalidatePath("/dashboard");
 		revalidatePath(`/dashboard/courses/${course.slug}`);
 
@@ -120,26 +162,16 @@ export async function enrollUser(courseId: string) {
 	}
 }
 
-export async function enrollCourse(courseId: string) {
-	const user = await requireUser();
+/**
+ * Quick enroll dan redirect - wrapper untuk enrollUser
+ * Digunakan oleh button yang langsung redirect setelah enroll
+ */
+export async function enrollAndRedirect(courseId: string) {
+	const result = await enrollUser(courseId);
 
-	// Cek apakah sudah enrolled (untuk mencegah duplikasi)
-	const existingEnrollment = await prisma.enrollment.findUnique({
-		where: {
-			userId_courseId: {
-				userId: user.id,
-				courseId: courseId,
-			},
-		},
-	});
-
-	if (!existingEnrollment) {
-		await prisma.enrollment.create({
-			data: {
-				userId: user.id,
-				courseId: courseId,
-			},
-		});
+	if (result.error) {
+		// Return error untuk ditampilkan di UI
+		return result;
 	}
 
 	revalidatePath("/dashboard");

@@ -30,7 +30,7 @@ export function AdminCourseCard({ data }: iAppProps) {
 				</Badge>
 
 				<Badge
-					variant={data.status === "Published" ? "secondary" : "outline"}
+					variant={data.status === "PUBLISHED" ? "secondary" : "outline"}
 					className="bg-background/80 backdrop-blur-md text-xs font-medium border-black/10 shadow-sm"
 				>
 					{data.status}

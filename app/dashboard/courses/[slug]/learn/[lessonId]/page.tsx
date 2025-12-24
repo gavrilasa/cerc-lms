@@ -21,10 +21,10 @@ export default async function LessonPage({ params }: { params: Params }) {
 			title: true,
 			description: true,
 			chapterId: true,
-			Chapter: {
+			chapter: {
 				select: {
 					courseId: true,
-					Course: {
+					course: {
 						select: {
 							title: true,
 							slug: true,
@@ -41,9 +41,9 @@ export default async function LessonPage({ params }: { params: Params }) {
 	}
 
 	// Validasi Slug URL matches Lesson Data (Security/Consistency check)
-	if (lesson.Chapter.Course.slug !== slug) {
+	if (lesson.chapter.course.slug !== slug) {
 		return redirect(
-			`/dashboard/courses/${lesson.Chapter.Course.slug}/learn/${lessonId}`
+			`/dashboard/courses/${lesson.chapter.course.slug}/learn/${lessonId}`
 		);
 	}
 
@@ -51,10 +51,10 @@ export default async function LessonPage({ params }: { params: Params }) {
 	return (
 		<LessonMainWrapper
 			lessonId={lesson.id}
-			courseId={lesson.Chapter.courseId}
+			courseId={lesson.chapter.courseId}
 			lessonTitle={lesson.title}
 			lessonContent={lesson.description || ""}
-			courseTitle={lesson.Chapter.Course.title}
+			courseTitle={lesson.chapter.course.title}
 		/>
 	);
 }

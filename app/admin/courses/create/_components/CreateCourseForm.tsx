@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/select";
 import { CourseRichTextEditor } from "@/components/rich-text-editor/CourseEditor";
 import { Uploader } from "@/components/file-uploader/Uploader";
-import { tryCatch } from "@/hooks/try-catch";
+import { tryCatch } from "@/lib/utils/try-catch";
 import { useTransition } from "react";
 import { CreateCourse } from "../actions";
 import { toast } from "sonner";

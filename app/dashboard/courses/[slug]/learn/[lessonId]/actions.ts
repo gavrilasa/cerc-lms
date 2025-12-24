@@ -3,20 +3,96 @@
 import { requireUser } from "@/app/data/user/require-user";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { EnrollmentStatus } from "@/lib/generated/prisma/enums";
+
+// Zod schema untuk validasi input
+const markAsCompletedInputSchema = z.object({
+	lessonId: z.string().uuid({ message: "Invalid Lesson ID" }),
+	courseId: z.string().uuid({ message: "Invalid Course ID" }),
+});
 
 interface MarkAsCompletedResult {
+	success: boolean;
 	nextLessonId: string | null;
 	isCourseCompleted: boolean;
+	error?: string;
 }
 
+/**
+ * Mark a lesson as completed dengan validasi:
+ * - User harus aktif enrolled di course
+ * - Lesson harus exist
+ */
 export async function markAsCompleted(
 	lessonId: string,
 	courseId: string
 ): Promise<MarkAsCompletedResult> {
 	const session = await requireUser();
 
-	// 1. Validasi & Update Progress (Upsert)
-	// Kita menggunakan upsert untuk menangani kasus di mana user mungkin mengklik tombol ini berkali-kali
+	// 1. Input Validation
+	const validation = markAsCompletedInputSchema.safeParse({
+		lessonId,
+		courseId,
+	});
+	if (!validation.success) {
+		return {
+			success: false,
+			nextLessonId: null,
+			isCourseCompleted: false,
+			error: validation.error.issues[0]?.message || "Invalid input",
+		};
+	}
+
+	// 2. [NEW] Enrollment Check - user harus enrolled di course
+	const enrollment = await prisma.enrollment.findUnique({
+		where: {
+			userId_courseId: {
+				userId: session.id,
+				courseId: courseId,
+			},
+		},
+	});
+
+	if (!enrollment || enrollment.status !== EnrollmentStatus.ACTIVE) {
+		return {
+			success: false,
+			nextLessonId: null,
+			isCourseCompleted: false,
+			error: "Anda belum terdaftar di kursus ini.",
+		};
+	}
+
+	// 3. Get current lesson data
+	const currentLesson = await prisma.lesson.findUnique({
+		where: { id: lessonId },
+		select: {
+			position: true,
+			chapterId: true,
+			chapter: { select: { position: true, courseId: true } },
+		},
+	});
+
+	if (!currentLesson) {
+		return {
+			success: false,
+			nextLessonId: null,
+			isCourseCompleted: false,
+			error: "Lesson tidak ditemukan.",
+		};
+	}
+
+	// Verify lesson belongs to the course
+	if (currentLesson.chapter.courseId !== courseId) {
+		return {
+			success: false,
+			nextLessonId: null,
+			isCourseCompleted: false,
+			error: "Lesson tidak ada di kursus ini.",
+		};
+	}
+
+	// 4. Update Progress (Upsert for idempotency)
 	await prisma.lessonProgress.upsert({
 		where: {
 			userId_lessonId: {
@@ -34,21 +110,7 @@ export async function markAsCompleted(
 		},
 	});
 
-	// 2. Logika "Next Lesson" (Algoritma Pencarian)
-	// Pertama, kita butuh data posisi lesson saat ini
-	const currentLesson = await prisma.lesson.findUnique({
-		where: { id: lessonId },
-		select: {
-			position: true,
-			chapterId: true,
-			Chapter: { select: { position: true } },
-		},
-	});
-
-	if (!currentLesson) {
-		throw new Error("Lesson not found");
-	}
-
+	// 5. Find Next Lesson
 	let nextLessonId: string | null = null;
 
 	// Cari lesson berikutnya di Chapter yang sama
@@ -68,42 +130,39 @@ export async function markAsCompleted(
 		const nextChapter = await prisma.chapter.findFirst({
 			where: {
 				courseId: courseId,
-				position: { gt: currentLesson.Chapter.position },
+				position: { gt: currentLesson.chapter.position },
 			},
 			orderBy: { position: "asc" },
 			select: {
 				id: true,
 				lessons: {
 					orderBy: { position: "asc" },
-					take: 1, // Ambil hanya lesson pertama
+					take: 1,
 					select: { id: true },
 				},
 			},
 		});
 
-		// Jika chapter berikutnya ada dan memiliki lesson
 		if (nextChapter && nextChapter.lessons.length > 0) {
 			nextLessonId = nextChapter.lessons[0].id;
 		}
 	}
 
-	// 3. Cek Penyelesaian Kursus
-	// Hitung total lessons di kursus ini
+	// 6. Check Course Completion
 	const totalLessonsCount = await prisma.lesson.count({
 		where: {
-			Chapter: {
+			chapter: {
 				courseId: courseId,
 			},
 		},
 	});
 
-	// Hitung jumlah lesson yang sudah diselesaikan user di kursus ini
 	const completedLessonsCount = await prisma.lessonProgress.count({
 		where: {
 			userId: session.id,
 			completed: true,
 			lesson: {
-				Chapter: {
+				chapter: {
 					courseId: courseId,
 				},
 			},
@@ -112,10 +171,8 @@ export async function markAsCompleted(
 
 	const isCourseCompleted = completedLessonsCount === totalLessonsCount;
 
-	// Jika kursus selesai, update status Enrollment
+	// 7. Update enrollment if completed
 	if (isCourseCompleted) {
-		// Catatan: Pastikan Enums EnrollmentStatus mendukung 'COMPLETED' jika ingin mengubah status.
-		// Jika tidak, kita setidaknya mengisi completedAt.
 		await prisma.enrollment.updateMany({
 			where: {
 				userId: session.id,
@@ -123,17 +180,15 @@ export async function markAsCompleted(
 			},
 			data: {
 				completedAt: new Date(),
-				// Uncomment baris di bawah jika enum EnrollmentStatus Anda memiliki value 'Completed'
-				// status: "Completed",
 			},
 		});
 	}
 
-	// Revalidate path agar UI sidebar terupdate (progress bar & checklist)
-	// Asumsi path ini, sesuaikan jika slug dinamis
+	// 8. Revalidation
 	revalidatePath("/dashboard/courses");
 
 	return {
+		success: true,
 		nextLessonId,
 		isCourseCompleted,
 	};

@@ -24,10 +24,10 @@ export async function getLessonContent(lessonId: string) {
 					lessonId: true,
 				},
 			},
-			Chapter: {
+			chapter: {
 				select: {
 					courseId: true,
-					Course: {
+					course: {
 						select: {
 							slug: true,
 						},
@@ -45,7 +45,7 @@ export async function getLessonContent(lessonId: string) {
 		where: {
 			userId_courseId: {
 				userId: session.id,
-				courseId: lesson.Chapter.courseId,
+				courseId: lesson.chapter.courseId,
 			},
 		},
 		select: {
@@ -53,7 +53,7 @@ export async function getLessonContent(lessonId: string) {
 		},
 	});
 
-	if (!enrollment || enrollment.status !== "Active") {
+	if (!enrollment || enrollment.status !== "ACTIVE") {
 		return notFound();
 	}
 

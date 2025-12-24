@@ -18,7 +18,7 @@ import { DivisionBadge } from "@/components/general/DivisionBadge";
 
 interface CurriculumCourseCardProps {
 	course: Course & {
-		enrollment: Enrollment[];
+		enrollments: Enrollment[];
 		lessons: Lesson[];
 		_count?: {
 			lessons: number;

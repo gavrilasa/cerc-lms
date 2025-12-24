@@ -3,7 +3,12 @@ import "server-only";
 import { requireAdmin } from "./require-admin";
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
+import { courseWithDetailedChaptersSelect } from "@/lib/prisma/selects";
 
+/**
+ * Get a course by ID with detailed chapters and lessons.
+ * For admin views. Requires ADMIN role.
+ */
 export async function adminGetCourse(id: string) {
 	await requireAdmin();
 
@@ -11,31 +16,7 @@ export async function adminGetCourse(id: string) {
 		where: {
 			id: id,
 		},
-		select: {
-			id: true,
-			title: true,
-			description: true,
-			fileKey: true,
-			status: true,
-			slug: true,
-			smallDescription: true,
-			division: true,
-			chapter: {
-				select: {
-					id: true,
-					title: true,
-					position: true,
-					lessons: {
-						select: {
-							id: true,
-							title: true,
-							description: true,
-							position: true,
-						},
-					},
-				},
-			},
-		},
+		select: courseWithDetailedChaptersSelect,
 	});
 
 	if (!data) {

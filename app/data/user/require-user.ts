@@ -1,28 +1,17 @@
 import "server-only";
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { cache } from "react";
+import { requireSession } from "@/app/data/auth/require-session";
 
-export const requireUser = cache(async () => {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-	if (!session) {
-		return redirect("/login");
-	}
+/**
+ * Requires the user to be authenticated (any role).
+ * Redirects to /login if not authenticated.
+ *
+ * @returns The user object from the session
+ *
+ * @deprecated Consider using `requireSession()` directly for more flexibility.
+ * Note: requireSession returns full session, use session.user to get user data.
+ */
+export const requireUser = async () => {
+	const session = await requireSession();
 	return session.user;
-});
-
-// export async function requireUser() {
-// 	const session = await auth.api.getSession({
-// 		headers: await headers(),
-// 	});
-
-// 	if (!session) {
-// 		return redirect("/login");
-// 	}
-
-// 	return session.user;
-// }
+};

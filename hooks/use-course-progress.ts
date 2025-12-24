@@ -20,7 +20,7 @@ export function useCourseProgress({
 		let totalLessons = 0;
 		let completedLessons = 0;
 
-		courseData.chapter.forEach((chapter) => {
+		courseData.chapters.forEach((chapter) => {
 			chapter.lessons.forEach((lesson) => {
 				totalLessons++;
 

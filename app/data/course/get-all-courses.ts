@@ -27,7 +27,7 @@ export async function getAllCourses({
 	const user = session.user as AuthUser;
 
 	const whereClause: Prisma.CourseWhereInput = {
-		status: "Published",
+		status: "PUBLISHED",
 	};
 
 	if (divisionFilter) {

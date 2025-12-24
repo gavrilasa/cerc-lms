@@ -10,7 +10,7 @@ export async function getEnrolledCourses() {
 
 	const whereClause: Prisma.EnrollmentWhereInput = {
 		userId: user.id,
-		status: "Active",
+		status: "ACTIVE",
 	};
 
 	if (!checkRole(user, "ADMIN")) {
@@ -33,7 +33,7 @@ export async function getEnrolledCourses() {
 					title: true,
 					fileKey: true,
 					slug: true,
-					chapter: {
+					chapters: {
 						select: {
 							id: true,
 							lessons: {

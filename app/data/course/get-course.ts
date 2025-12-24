@@ -2,44 +2,18 @@ import "server-only";
 
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
+import { courseWithChaptersSelect } from "@/lib/prisma/selects";
 
+/**
+ * Get a course by slug with chapters and lessons.
+ * For public/user facing views.
+ */
 export async function getCourse(slug: string) {
 	const course = await prisma.course.findUnique({
 		where: {
 			slug: slug,
 		},
-		select: {
-			id: true,
-			title: true,
-			description: true,
-			fileKey: true,
-			smallDescription: true,
-			division: true,
-			status: true,
-			updatedAt: true,
-			slug: true,
-
-			chapter: {
-				select: {
-					id: true,
-					title: true,
-					position: true,
-					lessons: {
-						select: {
-							id: true,
-							title: true,
-							position: true,
-						},
-						orderBy: {
-							position: "asc",
-						},
-					},
-				},
-				orderBy: {
-					position: "asc",
-				},
-			},
-		},
+		select: courseWithChaptersSelect,
 	});
 
 	if (!course) {

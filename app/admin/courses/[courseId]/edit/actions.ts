@@ -373,7 +373,7 @@ export async function deleteChapter({
 				id: courseId,
 			},
 			select: {
-				chapter: {
+				chapters: {
 					orderBy: {
 						position: "asc",
 					},
@@ -392,7 +392,7 @@ export async function deleteChapter({
 			};
 		}
 
-		const chapters = courseWithChapters.chapter;
+		const chapters = courseWithChapters.chapters;
 
 		const chapterToDelete = chapters.find(
 			(chapter) => chapter.id === chapterId

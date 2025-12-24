@@ -1,3 +1,5 @@
+import "server-only";
+
 import prisma from "@/lib/db";
 import { requireUser } from "@/app/data/user/require-user";
 import { Division } from "@/lib/generated/prisma/enums";
@@ -13,8 +15,8 @@ export async function getAvailableCourses() {
 		where: {
 			division: user.division as Division,
 
-			status: "Published",
-			enrollment: {
+			status: "PUBLISHED",
+			enrollments: {
 				none: {
 					userId: user.id,
 				},
@@ -29,7 +31,7 @@ export async function getAvailableCourses() {
 			updatedAt: true,
 			_count: {
 				select: {
-					chapter: true,
+					chapters: true,
 				},
 			},
 		},

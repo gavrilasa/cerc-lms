@@ -54,7 +54,7 @@ export function CourseSidebar({ course }: iAppProps) {
 			</div>
 
 			<div className="py-4 pr-4 space-y-3">
-				{course.chapter.map((chapter, index) => (
+				{course.chapters.map((chapter, index) => (
 					<Collapsible key={chapter.id} defaultOpen={index === 0}>
 						<CollapsibleTrigger asChild>
 							<Button

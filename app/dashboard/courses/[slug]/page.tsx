@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
 import { Division } from "@/lib/generated/prisma/enums";
 import { requireUser } from "@/app/data/user/require-user";
-import prisma from "@/lib/db";
+import { checkUserEnrollment } from "@/app/data/user/check-enrollment";
 import { EnrollmentAction } from "./_components/EnrollmentAction";
 
 interface TiptapNode {
@@ -64,24 +64,17 @@ export default async function CourseDetailPage({
 
 	// 1. Ambil User & Cek Enrollment
 	const user = await requireUser();
-	const enrollment = await prisma.enrollment.findUnique({
-		where: {
-			userId_courseId: {
-				userId: user.id,
-				courseId: course.id,
-			},
-		},
-	});
+	const enrollment = await checkUserEnrollment(user.id, course.id);
 
 	// 2. Hitung total lessons
-	const totalLessons = course.chapter.reduce(
+	const totalLessons = course.chapters.reduce(
 		(acc, chapter) => acc + chapter.lessons.length,
 		0
 	);
 
 	// 3. Cari Lesson Pertama untuk tombol "Lanjutkan Belajar"
 	// Ambil chapter pertama, lalu lesson pertama dari chapter tersebut
-	const firstChapter = course.chapter[0];
+	const firstChapter = course.chapters[0];
 	const firstLesson = firstChapter?.lessons[0];
 	const firstLessonId = firstLesson?.id;
 
@@ -107,7 +100,7 @@ export default async function CourseDetailPage({
 							Curriculum
 						</h2>
 						<div className="space-y-4">
-							{course.chapter.map((chapter) => (
+							{course.chapters.map((chapter) => (
 								<Card key={chapter.id}>
 									<CardHeader className="py-3 bg-muted/20">
 										<CardTitle className="text-base font-medium">

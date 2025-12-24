@@ -34,14 +34,14 @@ export async function getUserCurriculumDetails(userId: string) {
 							division: true,
 							userId: true,
 							status: true,
-							chapter: {
+							chapters: {
 								select: {
 									lessons: {
 										select: { id: true },
 									},
 								},
 							},
-							enrollment: {
+							enrollments: {
 								where: {
 									userId: userId,
 								},
@@ -66,7 +66,7 @@ export async function getUserCurriculumDetails(userId: string) {
 
 	const allProcessedCourses = curriculumData.courses.map((pivot) => {
 		const course = pivot.course;
-		const enrollment = course.enrollment[0];
+		const enrollment = course.enrollments[0];
 
 		let enrollmentStatus: "NotStarted" | "Active" | "Completed" = "NotStarted";
 		if (enrollment) {
@@ -84,7 +84,7 @@ export async function getUserCurriculumDetails(userId: string) {
 			isLocked = user.curriculumStatus !== "COMPLETED";
 		}
 
-		const totalLessons = course.chapter.reduce(
+		const totalLessons = course.chapters.reduce(
 			(acc, ch) => acc + ch.lessons.length,
 			0
 		);
@@ -111,7 +111,7 @@ export async function getUserCurriculumDetails(userId: string) {
 				lessons: totalLessons,
 			},
 			lessons: [],
-			enrollment: course.enrollment,
+			enrollments: course.enrollments,
 		};
 	});
 

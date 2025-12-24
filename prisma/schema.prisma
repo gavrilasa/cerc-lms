@@ -49,15 +49,15 @@ enum UserCurriculumStatus {
 }
 
 enum CourseStatus {
-  Draft
-  Published
-  Archived
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 enum EnrollmentStatus {
-  Pending
-  Active
-  Cancelled
+  PENDING
+  ACTIVE
+  CANCELLED
 }
 
 model User {
@@ -85,9 +85,9 @@ model User {
   selectedCurriculum   Curriculum?          @relation(fields: [selectedCurriculumId], references: [id])
   curriculumStatus     UserCurriculumStatus @default(IN_PROGRESS)
 
-  courses        Course[]
-  enrollment     Enrollment[]
-  lessonProgress LessonProgress[]
+  courses         Course[]
+  enrollments     Enrollment[]
+  lessonProgress  LessonProgress[]
 
   @@unique([email])
   @@map("user")
@@ -186,7 +186,7 @@ model Course {
   division         Division
   smallDescription String
   slug             String       @unique
-  status           CourseStatus @default(Draft)
+  status           CourseStatus @default(DRAFT)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -194,11 +194,13 @@ model Course {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  chapter    Chapter[]
-  enrollment Enrollment[]
-  curricula  CurriculumCourse[]
+  chapters    Chapter[]
+  enrollments Enrollment[]
+  curricula   CurriculumCourse[]
 
   @@index([division])
+  @@index([userId])
+  @@index([status])
 }
 
 model Chapter {
@@ -208,10 +210,12 @@ model Chapter {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId String
 
   lessons Lesson[]
+
+  @@index([courseId, position])
 }
 
 model Lesson {
@@ -222,15 +226,17 @@ model Lesson {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  Chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   chapterId String
 
   lessonProgress LessonProgress[]
+
+  @@index([chapterId, position])
 }
 
 model Enrollment {
   id          String           @id @default(uuid())
-  status      EnrollmentStatus @default(Active)
+  status      EnrollmentStatus @default(ACTIVE)
   completedAt DateTime?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

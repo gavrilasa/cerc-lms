@@ -9,7 +9,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { tryCatch } from "@/hooks/try-catch";
+import { tryCatch } from "@/lib/utils/try-catch";
 import { Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { deleteLesson } from "../actions";

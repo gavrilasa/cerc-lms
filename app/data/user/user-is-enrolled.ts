@@ -23,5 +23,5 @@ export async function userIsEnrolled(courseId: string): Promise<boolean> {
 		},
 	});
 
-	return enrollment?.status === "Active";
+	return enrollment?.status === "ACTIVE";
 }

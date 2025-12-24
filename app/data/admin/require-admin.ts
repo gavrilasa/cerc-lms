@@ -1,35 +1,16 @@
 import "server-only";
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { cache } from "react";
+import { requireSession } from "@/app/data/auth/require-session";
 
-export const requireAdmin = cache(async () => {
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	});
-	if (!session) {
-		return redirect("/login");
-	}
-	if (session.user.role !== "ADMIN") {
-		return redirect("/not-admin");
-	}
-	return session;
-});
-
-// export async function requireAdmin() {
-// 	const session = await auth.api.getSession({
-// 		headers: await headers(),
-// 	});
-
-// 	if (!session) {
-// 		return redirect("/login");
-// 	}
-
-// 	if (session.user.role !== "admin") {
-// 		return redirect("/not-admin");
-// 	}
-
-// 	return session;
-// }
+/**
+ * Requires the user to be authenticated with ADMIN role.
+ * Redirects to /login if not authenticated, /not-admin if insufficient role.
+ *
+ * @returns The full session object including user data
+ *
+ * @deprecated Consider using `requireSession({ minRole: "ADMIN" })` directly
+ * for more flexibility and to reduce abstraction layers.
+ */
+export const requireAdmin = async () => {
+	return requireSession({ minRole: "ADMIN" });
+};
