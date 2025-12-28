@@ -12,6 +12,7 @@ import {
 	IconListDetails,
 	IconSearch,
 	IconSettings,
+	IconEye,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -50,6 +51,11 @@ const data = {
 			title: "Curriculum",
 			url: "/admin/curriculum",
 			icon: IconFolder,
+		},
+		{
+			title: "Review",
+			url: "/admin/review",
+			icon: IconEye,
 		},
 	],
 	navClouds: [
