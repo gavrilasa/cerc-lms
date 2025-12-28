@@ -60,6 +60,16 @@ enum EnrollmentStatus {
   CANCELLED
 }
 
+enum SubmissionType {
+  TASK
+  PROJECT
+}
+
+enum SubmissionStatus {
+  PENDING
+  REVIEWED
+}
+
 model User {
   id            String   @id
   name          String
@@ -88,6 +98,10 @@ model User {
   courses         Course[]
   enrollments     Enrollment[]
   lessonProgress  LessonProgress[]
+
+  totalPoints         Int          @default(0)
+  submissions         Submission[] @relation("UserSubmissions")
+  reviewedSubmissions Submission[] @relation("ReviewerSubmissions")
 
   @@unique([email])
   @@map("user")
@@ -197,6 +211,7 @@ model Course {
   chapters    Chapter[]
   enrollments Enrollment[]
   curricula   CurriculumCourse[]
+  submissions Submission[]
 
   @@index([division])
   @@index([userId])
@@ -261,4 +276,46 @@ model LessonProgress {
   lessonId String
 
   @@unique([userId, lessonId])
+}
+
+model Submission {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  type        SubmissionType
+  status      SubmissionStatus @default(PENDING)
+  division    Division
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation("UserSubmissions", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  courseId String?
+
+  reviewer   User?   @relation("ReviewerSubmissions", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewerId String?
+
+  score    Int?
+  feedback String?
+
+  links SubmissionLink[]
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([division])
+  @@index([status])
+}
+
+model SubmissionLink {
+  id    String @id @default(uuid())
+  label String
+  url   String
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String
+
+  @@index([submissionId])
 }
