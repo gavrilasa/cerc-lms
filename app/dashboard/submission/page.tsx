@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { getUserSubmissions, getEnrolledCourses } from "./actions";
 import { SubmissionTable } from "./_components/SubmissionTable";
 import { CreateSubmissionDialog } from "./_components/CreateSubmissionDialog";
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SubmissionPage() {
-	await requireUser();
+	await requireSession();
 
 	const [submissions, enrolledCourses] = await Promise.all([
 		getUserSubmissions(),

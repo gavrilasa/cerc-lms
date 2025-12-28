@@ -3,14 +3,14 @@ import "server-only";
 import prisma from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import type { UserStatus, Division } from "@/lib/generated/prisma/enums";
-import { requireAdmin } from "../require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 
 export async function getUsers(
 	statusFilter?: UserStatus | "ALL",
 	divisionFilter?: Division | "ALL",
 	searchQuery?: string
 ) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const whereClause: Prisma.UserWhereInput = {};
 

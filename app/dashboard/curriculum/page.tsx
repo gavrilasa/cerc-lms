@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { getCurriculumTimeline } from "@/app/data/curriculum/get-curriculum-timeline";
 import { CurriculumTimeline } from "./_components/CurriculumTimeline";
 import { EmptyState } from "@/components/general/EmptyState";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function CurriculumPage() {
 	// 1. Auth & Validation
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	// Jika user belum memilih kurikulum, redirect ke halaman seleksi
 	if (!user.selectedCurriculumId) {

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireAdmin } from "./require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 import { courseWithDetailedChaptersSelect } from "@/lib/prisma/selects";
@@ -10,7 +10,7 @@ import { courseWithDetailedChaptersSelect } from "@/lib/prisma/selects";
  * For admin views. Requires ADMIN role.
  */
 export async function adminGetCourse(id: string) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const data = await prisma.course.findUnique({
 		where: {

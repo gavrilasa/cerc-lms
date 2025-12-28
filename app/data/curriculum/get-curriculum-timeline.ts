@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { S3 } from "@/lib/S3Client";
 import { env } from "@/lib/env";
@@ -21,7 +21,7 @@ export type CurriculumTimelineItem = {
 export async function getCurriculumTimeline(): Promise<
 	CurriculumTimelineItem[]
 > {
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	if (!user.selectedCurriculumId) {
 		return [];

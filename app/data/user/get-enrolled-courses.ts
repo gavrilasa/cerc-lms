@@ -1,12 +1,12 @@
 import "server-only";
-import { requireUser } from "./require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export async function getEnrolledCourses() {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	const whereClause: Prisma.EnrollmentWhereInput = {
 		userId: user.id,

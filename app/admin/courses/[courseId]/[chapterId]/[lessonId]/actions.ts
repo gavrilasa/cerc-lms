@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
 import { lessonSchema, LessonSchemaType } from "@/lib/zodSchemas";
@@ -9,7 +9,7 @@ export async function updateLesson(
 	values: LessonSchemaType,
 	lessonId: string
 ): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	try {
 		const result = lessonSchema.safeParse(values);

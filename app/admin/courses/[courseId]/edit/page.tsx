@@ -9,7 +9,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditCourseForm } from "./_components/EditCourseForm";
 import { CourseStructure } from "./_components/CourseStructure";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { redirect } from "next/navigation";
 
 type Params = Promise<{ courseId: string }>;
@@ -17,7 +17,7 @@ type Params = Promise<{ courseId: string }>;
 export default async function EditRoute({ params }: { params: Params }) {
 	const { courseId } = await params;
 	const data = await adminGetCourse(courseId);
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	if (!user.role) {
 		redirect("/not-admin");

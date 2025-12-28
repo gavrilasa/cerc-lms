@@ -6,7 +6,7 @@ import z from "zod";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3 } from "@/lib/S3Client";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 
 export const fileUploadSchema = z.object({
 	fileName: z.string().min(1, { message: "Flename is required" }),
@@ -26,7 +26,7 @@ const aj = arcjet.withRule(
 );
 
 export async function POST(request: Request) {
-	const session = await requireAdmin();
+	const session = await requireSession({ minRole: "ADMIN" });
 
 	try {
 		const decision = await aj.protect(request, {

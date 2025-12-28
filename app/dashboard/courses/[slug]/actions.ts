@@ -1,6 +1,6 @@
 "use server";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import {
@@ -31,8 +31,8 @@ interface EnrollmentResult {
  */
 export async function enrollUser(courseId: string): Promise<EnrollmentResult> {
 	// 1. Auth Check
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// 2. Input Validation dengan Zod
 	const validation = enrollmentInputSchema.safeParse({ courseId });

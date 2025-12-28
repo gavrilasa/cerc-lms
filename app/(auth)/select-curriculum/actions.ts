@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import { request } from "@arcjet/next";
@@ -29,7 +29,7 @@ const selectCurriculumSchema = z.object({
 export async function selectCurriculum(
 	input: z.infer<typeof selectCurriculumSchema>
 ) {
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	// Mencegah brute-force atau abuse pada endpoint ini
 	const req = await request();

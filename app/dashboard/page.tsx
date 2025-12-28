@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { EnrolledCoursesSection } from "./_components/EnrolledCoursesSection";
 import { AvailableCoursesSection } from "./_components/AvailableCoursesSection";
 import {
@@ -14,7 +14,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
 	// User info is fetched first (fast, cached) for UI display
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	return (
 		<div className="flex flex-col gap-y-10 pb-10">

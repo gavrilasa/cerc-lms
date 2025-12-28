@@ -1,7 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { getCurriculumByDivision } from "@/app/data/curriculum/get-curriculum-by-division";
 import prisma from "@/lib/db";
 import { CurriculumSelectionForm } from "./_components/CurriculumSelectionForm";
@@ -13,7 +13,7 @@ export const metadata = {
 };
 
 export default async function SelectCurriculumPage() {
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	if (!user.division) {
 		return (

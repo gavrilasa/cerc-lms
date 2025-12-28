@@ -9,7 +9,7 @@ import {
 	Trash,
 	Layers,
 } from "lucide-react";
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ import { DivisionBadge } from "@/components/general/DivisionBadge";
 import type { Division } from "@/lib/generated/prisma/enums";
 
 export default async function CurriculumPage() {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const curriculum = await prisma.curriculum.findMany({
 		orderBy: { updatedAt: "desc" },

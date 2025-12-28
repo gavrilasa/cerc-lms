@@ -1,10 +1,10 @@
 import "server-only";
-import { requireUser } from "../user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { notFound } from "next/navigation";
 
 export async function getLessonContent(lessonId: string) {
-	const session = await requireUser();
+	const { user } = await requireSession();
 
 	const lesson = await prisma.lesson.findUnique({
 		where: {
@@ -17,7 +17,7 @@ export async function getLessonContent(lessonId: string) {
 			position: true,
 			lessonProgress: {
 				where: {
-					userId: session.id,
+					userId: user.id,
 				},
 				select: {
 					completed: true,
@@ -44,7 +44,7 @@ export async function getLessonContent(lessonId: string) {
 	const enrollment = await prisma.enrollment.findUnique({
 		where: {
 			userId_courseId: {
-				userId: session.id,
+				userId: user.id,
 				courseId: lesson.chapter.courseId,
 			},
 		},

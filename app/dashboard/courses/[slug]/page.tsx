@@ -12,7 +12,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
 import { Division } from "@/lib/generated/prisma/enums";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { checkUserEnrollment } from "@/app/data/user/check-enrollment";
 import { EnrollmentAction } from "./_components/EnrollmentAction";
 
@@ -63,7 +63,7 @@ export default async function CourseDetailPage({
 	if (!course) return notFound();
 
 	// 1. Ambil User & Cek Enrollment
-	const user = await requireUser();
+	const { user } = await requireSession();
 	const enrollment = await checkUserEnrollment(user.id, course.id);
 
 	// 2. Hitung total lessons

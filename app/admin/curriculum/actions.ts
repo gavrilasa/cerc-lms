@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import { request } from "@arcjet/next";
@@ -56,7 +56,7 @@ const updateStructureSchema = z.object({
  */
 export async function createCurriculum(prevState: unknown, formData: FormData) {
 	// A. Auth & Rate Limit Check
-	const session = await requireAdmin();
+	const session = await requireSession({ minRole: "ADMIN" });
 	const user = session.user;
 
 	const req = await request();
@@ -121,7 +121,7 @@ export async function createCurriculum(prevState: unknown, formData: FormData) {
 export async function updateCurriculumStructure(
 	input: z.infer<typeof updateStructureSchema>
 ) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const validated = updateStructureSchema.safeParse(input);
 	if (!validated.success) {
@@ -167,7 +167,7 @@ export async function updateCurriculumStructure(
  * Dipanggil dari Dropdown menu di list kurikulum.
  */
 export async function archiveCurriculum(curriculumId: string) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	if (!curriculumId) return { error: "ID is required" };
 

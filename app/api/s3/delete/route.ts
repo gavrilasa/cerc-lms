@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import { env } from "@/lib/env";
 import { S3 } from "@/lib/S3Client";
@@ -14,7 +14,7 @@ const aj = arcjet.withRule(
 );
 
 export async function DELETE(request: Request) {
-	const session = await requireAdmin();
+	const session = await requireSession({ minRole: "ADMIN" });
 
 	try {
 		const decision = await aj.protect(request, {

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { getAllCourses } from "@/app/data/course/get-all-courses";
 import { CurriculumDesignBuilder } from "../../_components/CurriculumDesignBuilder";
@@ -12,7 +12,7 @@ interface PageProps {
 }
 
 export default async function CurriculumDesignPage({ params }: PageProps) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 	const { id } = await params;
 
 	// 1. Fetch Kurikulum Target & Existing Courses

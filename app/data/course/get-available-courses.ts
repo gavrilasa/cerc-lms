@@ -1,11 +1,11 @@
 import "server-only";
 
 import prisma from "@/lib/db";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { Division } from "@/lib/generated/prisma/enums";
 
 export async function getAvailableCourses() {
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	if (!user.division) {
 		return [];

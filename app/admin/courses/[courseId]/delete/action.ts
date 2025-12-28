@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
@@ -16,7 +16,7 @@ const aj = arcjet.withRule(
 );
 
 export async function deleteCourse(courseId: string): Promise<ApiResponse> {
-	const session = await requireAdmin();
+	const session = await requireSession({ minRole: "ADMIN" });
 
 	try {
 		const req = await request();

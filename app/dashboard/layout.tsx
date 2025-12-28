@@ -4,7 +4,7 @@ import { AppSidebar } from "./_components/DashboardAppSidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
 
@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 }: {
 	children: ReactNode;
 }) {
-	const user = await requireUser();
+	const { user } = await requireSession();
 
 	if (user.status === "VERIFIED") {
 		if (!user.selectedCurriculumId) {

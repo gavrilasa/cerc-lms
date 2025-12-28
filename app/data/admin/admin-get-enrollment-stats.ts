@@ -1,10 +1,10 @@
 import "server-only";
 
 import prisma from "@/lib/db";
-import { requireAdmin } from "./require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 
 export async function adminGetEnrollmentStats() {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const thirtyDaysAgo = new Date();
 

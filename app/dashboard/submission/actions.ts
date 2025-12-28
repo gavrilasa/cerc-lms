@@ -1,6 +1,6 @@
 "use server";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import {
@@ -60,8 +60,8 @@ export type SubmissionWithDetails = Awaited<
 export async function createSubmission(
 	input: z.infer<typeof createSubmissionSchema>
 ): Promise<ActionResult> {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Validate input
 	const validation = createSubmissionSchema.safeParse(input);
@@ -134,8 +134,8 @@ export async function createSubmission(
  * Get all submissions for the current user
  */
 export async function getUserSubmissions() {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	const submissions = await prisma.submission.findMany({
 		where: { userId: user.id },
@@ -165,8 +165,8 @@ export async function getUserSubmissions() {
  * Get user's enrolled courses for the submission form dropdown
  */
 export async function getEnrolledCourses() {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	const enrollments = await prisma.enrollment.findMany({
 		where: {
@@ -198,8 +198,8 @@ export async function getEnrolledCourses() {
  * - Shows both pending and reviewed submissions
  */
 export async function getAllSubmissionsForReview() {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
@@ -256,8 +256,8 @@ export type ReviewSubmission = Awaited<
 export async function gradeSubmission(
 	input: z.infer<typeof gradeSubmissionSchema>
 ): Promise<ActionResult> {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
@@ -334,8 +334,8 @@ export async function gradeSubmission(
  * Get submission detail by ID (for review modal)
  */
 export async function getSubmissionDetail(submissionId: string) {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Must be at least MENTOR or the owner
 	const submission = await prisma.submission.findUnique({

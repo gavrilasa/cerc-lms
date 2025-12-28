@@ -1,6 +1,6 @@
 "use server";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { Role, Division } from "@/lib/generated/prisma/enums";
 import { type AuthUser, checkRole } from "@/lib/access-control";
@@ -39,8 +39,8 @@ const DIVISION_LIMIT = 15;
  * Returns Top 20 + current user's rank if outside Top 20
  */
 export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Get top users (MEMBER and USER roles only)
 	const topUsers = await prisma.user.findMany({
@@ -112,8 +112,8 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 export async function getDivisionLeaderboard(
 	division?: Division
 ): Promise<LeaderboardResult> {
-	const sessionUser = await requireUser();
-	const user = sessionUser as AuthUser;
+	const session = await requireSession();
+	const user = session.user as AuthUser;
 
 	// Only MEMBER and ADMIN can view division leaderboard
 	if (!checkRole(user, "MEMBER")) {

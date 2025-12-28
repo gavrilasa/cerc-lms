@@ -1,6 +1,6 @@
 "use server";
 
-import { requireAdmin } from "@/app/data/admin/require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import prisma from "@/lib/db";
 import { Division } from "@/lib/generated/prisma/enums";
@@ -28,13 +28,13 @@ export async function editCourse(
 	data: CourseSchemaType,
 	courseId: string
 ): Promise<ApiResponse> {
-	const user = await requireAdmin();
+	const { user } = await requireSession({ minRole: "ADMIN" });
 
 	try {
 		const req = await request();
 
 		const decision = await aj.protect(req, {
-			fingerprint: user.user.id,
+			fingerprint: user.id,
 		});
 
 		if (decision.isDenied()) {
@@ -66,7 +66,7 @@ export async function editCourse(
 		await prisma.course.update({
 			where: {
 				id: courseId,
-				userId: user.user.id,
+				userId: user.id,
 			},
 			data: {
 				...result.data,
@@ -95,7 +95,7 @@ export async function reorderLessons(
 	}[],
 	courseId: string
 ): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	try {
 		if (!lessons || lessons.length === 0) {
@@ -140,7 +140,7 @@ export async function reorderChapters(
 		position: number;
 	}[]
 ): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	try {
 		if (!chapters || chapters.length === 0) {
@@ -181,7 +181,7 @@ export async function reorderChapters(
 export async function createChapter(
 	values: ChapterSchemaType
 ): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 	try {
 		const result = chapterSchema.safeParse(values);
 
@@ -232,7 +232,7 @@ export async function createLesson(
 	// PERBAIKAN: Menggunakan LessonSchemaType, bukan ChapterSchemaType
 	values: LessonSchemaType
 ): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 	try {
 		const result = lessonSchema.safeParse(values);
 
@@ -290,7 +290,7 @@ export async function deleteLesson({
 	courseId: string;
 	lessonId: string;
 }): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 	try {
 		const chapterWithLessons = await prisma.chapter.findUnique({
 			where: {
@@ -366,7 +366,7 @@ export async function deleteChapter({
 	chapterId: string;
 	courseId: string;
 }): Promise<ApiResponse> {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 	try {
 		const courseWithChapters = await prisma.course.findUnique({
 			where: {

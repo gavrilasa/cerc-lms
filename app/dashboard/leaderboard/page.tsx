@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import { getGlobalLeaderboard } from "./actions";
 import { LeaderboardTable } from "./_components/LeaderboardTable";
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-	await requireUser();
+	await requireSession();
 
 	const { entries, currentUserRank } = await getGlobalLeaderboard();
 

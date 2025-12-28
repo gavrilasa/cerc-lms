@@ -1,11 +1,11 @@
 import "server-only";
 
 import prisma from "@/lib/db";
-import { requireAdmin } from "./require-admin";
+import { requireSession } from "@/app/data/auth/require-session";
 import { notFound } from "next/navigation";
 
 export async function adminGetLesson(id: string) {
-	await requireAdmin();
+	await requireSession({ minRole: "ADMIN" });
 
 	const data = await prisma.lesson.findUnique({
 		where: {

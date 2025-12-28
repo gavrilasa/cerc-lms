@@ -1,6 +1,6 @@
 "use server";
 
-import { requireUser } from "@/app/data/user/require-user";
+import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -28,7 +28,7 @@ export async function markAsCompleted(
 	lessonId: string,
 	courseId: string
 ): Promise<MarkAsCompletedResult> {
-	const session = await requireUser();
+	const { user } = await requireSession();
 
 	// 1. Input Validation
 	const validation = markAsCompletedInputSchema.safeParse({
@@ -48,7 +48,7 @@ export async function markAsCompleted(
 	const enrollment = await prisma.enrollment.findUnique({
 		where: {
 			userId_courseId: {
-				userId: session.id,
+				userId: user.id,
 				courseId: courseId,
 			},
 		},
@@ -96,7 +96,7 @@ export async function markAsCompleted(
 	await prisma.lessonProgress.upsert({
 		where: {
 			userId_lessonId: {
-				userId: session.id,
+				userId: user.id,
 				lessonId: lessonId,
 			},
 		},
@@ -104,7 +104,7 @@ export async function markAsCompleted(
 			completed: true,
 		},
 		create: {
-			userId: session.id,
+			userId: user.id,
 			lessonId: lessonId,
 			completed: true,
 		},
@@ -159,7 +159,7 @@ export async function markAsCompleted(
 
 	const completedLessonsCount = await prisma.lessonProgress.count({
 		where: {
-			userId: session.id,
+			userId: user.id,
 			completed: true,
 			lesson: {
 				chapter: {
@@ -175,7 +175,7 @@ export async function markAsCompleted(
 	if (isCourseCompleted) {
 		await prisma.enrollment.updateMany({
 			where: {
-				userId: session.id,
+				userId: user.id,
 				courseId: courseId,
 			},
 			data: {
