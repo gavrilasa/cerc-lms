@@ -13,6 +13,7 @@ import {
 	IconSearch,
 	IconSettings,
 	IconEye,
+	IconTrophy,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -56,6 +57,11 @@ const data = {
 			title: "Review",
 			url: "/admin/review",
 			icon: IconEye,
+		},
+		{
+			title: "Leaderboard Divisi",
+			url: "/admin/leaderboard",
+			icon: IconTrophy,
 		},
 	],
 	navClouds: [

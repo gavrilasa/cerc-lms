@@ -12,6 +12,7 @@ export interface AuthUser extends User {
 	generation?: number;
 	selectedCurriculumId?: string | null;
 	curriculumStatus?: string | null;
+	totalPoints?: number;
 }
 
 /**

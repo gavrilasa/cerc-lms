@@ -11,6 +11,7 @@ import {
 	IconSettings,
 	IconLayout,
 	IconSend,
+	IconTrophy,
 } from "@tabler/icons-react";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavSecondary } from "@/components/sidebar/nav-secondary";
@@ -43,6 +44,16 @@ const data = {
 			title: "Submission",
 			url: "/dashboard/submission",
 			icon: IconSend,
+		},
+		{
+			title: "Leaderboard",
+			url: "/dashboard/leaderboard",
+			icon: IconTrophy,
+		},
+		{
+			title: "Leaderboard Divisi",
+			url: "/dashboard/leaderboard/division",
+			icon: IconTrophy,
 		},
 	],
 	navClouds: [
