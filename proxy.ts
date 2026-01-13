@@ -123,10 +123,8 @@ async function authMiddleware(request: NextRequest) {
 			if (user.role !== "ADMIN" && user.role !== "MENTOR") {
 				return NextResponse.redirect(new URL("/dashboard", request.url));
 			}
-
-			if (pathname.startsWith("/admin/users") && user.role !== "ADMIN") {
-				return NextResponse.redirect(new URL("/admin/courses", request.url));
-			}
+			// Note: /admin/users is accessible to both ADMIN and MENTOR
+			// Action restrictions (delete, archive) are handled server-side
 		}
 	}
 

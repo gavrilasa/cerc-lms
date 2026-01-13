@@ -2,8 +2,17 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ReactNode } from "react";
+import { requireSession } from "@/app/data/auth/require-session";
+import type { AuthUser } from "@/lib/access-control";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({
+	children,
+}: {
+	children: ReactNode;
+}) {
+	const session = await requireSession();
+	const user = session.user as unknown as AuthUser;
+
 	return (
 		<SidebarProvider
 			style={
@@ -13,7 +22,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 				} as React.CSSProperties
 			}
 		>
-			<AppSidebar variant="inset" />
+			<AppSidebar variant="inset" user={user} />
 			<SidebarInset>
 				<SiteHeader />
 				<div className="flex flex-1 flex-col">

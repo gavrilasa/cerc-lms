@@ -15,6 +15,12 @@ import { Division } from "@/lib/generated/prisma/enums";
 import { requireSession } from "@/app/data/auth/require-session";
 import { checkUserEnrollment } from "@/app/data/user/check-enrollment";
 import { EnrollmentAction } from "./_components/EnrollmentAction";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface TiptapNode {
 	type?: string;
@@ -97,31 +103,31 @@ export default async function CourseDetailPage({
 					<div className="space-y-4">
 						<h2 className="text-xl font-semibold flex items-center gap-2">
 							<BookOpen className="w-5 h-5 text-primary" />
-							Curriculum
+							Lessons
 						</h2>
-						<div className="space-y-4">
-							{course.chapters.map((chapter) => (
-								<Card key={chapter.id}>
-									<CardHeader className="py-3 bg-muted/20">
-										<CardTitle className="text-base font-medium">
+						<div className="space-y-2">
+							<Accordion type="multiple" className="w-full">
+								{course.chapters.map((chapter) => (
+									<AccordionItem value={chapter.id} key={chapter.id}>
+										<AccordionTrigger className="text-base font-medium">
 											{chapter.title}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="py-3">
-										<ul className="space-y-2">
-											{chapter.lessons.map((lesson) => (
-												<li
-													key={lesson.id}
-													className="flex items-center gap-2 text-sm text-muted-foreground"
-												>
-													<Lock className="w-3 h-3" />
-													{lesson.title}
-												</li>
-											))}
-										</ul>
-									</CardContent>
-								</Card>
-							))}
+										</AccordionTrigger>
+										<AccordionContent>
+											<ul className="space-y-2">
+												{chapter.lessons.map((lesson) => (
+													<li
+														key={lesson.id}
+														className="flex items-center gap-2 text-sm text-muted-foreground"
+													>
+														<Lock className="w-3 h-3" />
+														{lesson.title}
+													</li>
+												))}
+											</ul>
+										</AccordionContent>
+									</AccordionItem>
+								))}
+							</Accordion>
 						</div>
 					</div>
 				</div>

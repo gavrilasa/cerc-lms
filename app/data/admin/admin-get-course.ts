@@ -10,7 +10,9 @@ import { courseWithDetailedChaptersSelect } from "@/lib/prisma/selects";
  * For admin views. Requires ADMIN role.
  */
 export async function adminGetCourse(id: string) {
-	await requireSession({ minRole: "ADMIN" });
+	// 1. Minimum role: MENTOR
+	const session = await requireSession({ minRole: "MENTOR" });
+	const user = session.user;
 
 	const data = await prisma.course.findUnique({
 		where: {
@@ -20,6 +22,12 @@ export async function adminGetCourse(id: string) {
 	});
 
 	if (!data) {
+		return notFound();
+	}
+
+	// 2. Access Control: If user is MENTOR (not ADMIN), check division
+	if (user.role !== "ADMIN" && data.division !== user.division) {
+		// Or redirect to unauthorized page/dashboard
 		return notFound();
 	}
 

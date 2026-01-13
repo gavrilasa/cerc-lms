@@ -17,11 +17,13 @@ interface LeaderboardEntry {
 interface AdminLeaderboardClientProps {
 	initialDivision: Division;
 	initialEntries: LeaderboardEntry[];
+	isAdmin: boolean;
 }
 
 export default function AdminLeaderboardClient({
 	initialDivision,
 	initialEntries,
+	isAdmin,
 }: AdminLeaderboardClientProps) {
 	const [division, setDivision] = useState<Division>(initialDivision);
 	const [entries, setEntries] = useState<LeaderboardEntry[]>(initialEntries);
@@ -42,15 +44,16 @@ export default function AdminLeaderboardClient({
 				<h1 className="text-3xl font-bold tracking-tight">
 					Leaderboard Divisi
 				</h1>
-				<p className="text-muted-foreground">
-					Top 15 member per divisi.
-				</p>
+				<p className="text-muted-foreground">Top 15 member per divisi.</p>
 			</div>
 
-			<DivisionTabs
-				currentDivision={division}
-				onDivisionChange={setDivision}
-			/>
+			{/* Only show division tabs for Admins */}
+			{isAdmin && (
+				<DivisionTabs
+					currentDivision={division}
+					onDivisionChange={setDivision}
+				/>
+			)}
 
 			<div className="rounded-md border">
 				{isPending ? (

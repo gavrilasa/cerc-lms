@@ -32,9 +32,14 @@ import { DivisionBadge } from "@/components/general/DivisionBadge";
 import type { Division } from "@/lib/generated/prisma/enums";
 
 export default async function CurriculumPage() {
-	await requireSession({ minRole: "ADMIN" });
+	const session = await requireSession({ minRole: "ADMIN" });
+	const user = session.user;
+
+	const whereClause =
+		user.role === "ADMIN" ? {} : { division: user.division as Division };
 
 	const curriculum = await prisma.curriculum.findMany({
+		where: whereClause,
 		orderBy: { updatedAt: "desc" },
 		include: {
 			_count: {
@@ -45,6 +50,12 @@ export default async function CurriculumPage() {
 			},
 		},
 	});
+
+	// Explicit type assertion to handle Prisma type inference issues with _count
+	const typedCurriculum =
+		curriculum as unknown as ((typeof curriculum)[number] & {
+			_count: { courses: number; users: number };
+		})[];
 
 	return (
 		<div className="p-4 space-y-4">
@@ -61,7 +72,7 @@ export default async function CurriculumPage() {
 			</div>
 
 			<div className="grid gap-4 md:grid-cols-2">
-				{curriculum.map((item) => (
+				{typedCurriculum.map((item) => (
 					<Card
 						key={item.id}
 						className="flex flex-col group relative overflow-hidden transition-all hover:shadow-md gap-2"

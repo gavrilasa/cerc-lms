@@ -35,7 +35,7 @@ export default async function WaitingApprovalPage() {
 	const userDivision = user.division || "Belum ditentukan";
 
 	return (
-		<div className="min-h-screen w-full flex items-center justify-center bg-gray-50/50 dark:bg-neutral-950 p-4">
+		<div className="min-h-screen w-full flex items-center justify-center p-4">
 			{/* Background decoration */}
 			<div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-neutral-950 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
 

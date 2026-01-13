@@ -24,6 +24,7 @@ import type { Division, UserStatus, Role } from "@/lib/generated/prisma/enums";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
+import { authClient } from "@/lib/auth-client";
 
 interface UserTableProps {
 	users: {
@@ -40,6 +41,9 @@ interface UserTableProps {
 }
 
 export default function UserTable({ users }: UserTableProps) {
+	const { data: session } = authClient.useSession();
+	const isAdmin = session?.user?.role === "ADMIN";
+
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
@@ -115,21 +119,24 @@ export default function UserTable({ users }: UserTableProps) {
 						</SelectContent>
 					</Select>
 
-					<Select
-						defaultValue={searchParams.get("division") || "ALL"}
-						onValueChange={(val) => handleFilterChange("division", val)}
-					>
-						<SelectTrigger className="w-[150px] cursor-pointer">
-							<SelectValue placeholder="Division" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="ALL">All Divisions</SelectItem>
-							<SelectItem value="SOFTWARE">Software</SelectItem>
-							<SelectItem value="EMBEDDED">Embedded</SelectItem>
-							<SelectItem value="MULTIMEDIA">Multimedia</SelectItem>
-							<SelectItem value="NETWORKING">Networking</SelectItem>
-						</SelectContent>
-					</Select>
+					{/* Division filter only visible for ADMIN */}
+					{isAdmin && (
+						<Select
+							defaultValue={searchParams.get("division") || "ALL"}
+							onValueChange={(val) => handleFilterChange("division", val)}
+						>
+							<SelectTrigger className="w-[150px] cursor-pointer">
+								<SelectValue placeholder="Division" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="ALL">All Divisions</SelectItem>
+								<SelectItem value="SOFTWARE">Software</SelectItem>
+								<SelectItem value="EMBEDDED">Embedded</SelectItem>
+								<SelectItem value="MULTIMEDIA">Multimedia</SelectItem>
+								<SelectItem value="NETWORKING">Networking</SelectItem>
+							</SelectContent>
+						</Select>
+					)}
 				</div>
 				<div className="w-full sm:w-72">
 					<Input

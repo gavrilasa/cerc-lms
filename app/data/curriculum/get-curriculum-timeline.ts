@@ -31,6 +31,7 @@ export async function getCurriculumTimeline(): Promise<
 	const curriculumCourses = await prisma.curriculumCourse.findMany({
 		where: {
 			curriculumId: user.selectedCurriculumId,
+			type: "CORE",
 		},
 		orderBy: {
 			order: "asc",

@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, Play } from "lucide-react";
+import { Check, Play, Lock } from "lucide-react";
 import Link from "next/link";
 
 interface iAppProps {
@@ -13,9 +13,42 @@ interface iAppProps {
 	slug: string;
 	isActive?: boolean;
 	completed: boolean;
+	isLocked?: boolean;
 }
 
-export function LessonItem({ lesson, slug, isActive, completed }: iAppProps) {
+export function LessonItem({
+	lesson,
+	slug,
+	isActive,
+	completed,
+	isLocked,
+}: iAppProps) {
+	if (isLocked) {
+		return (
+			<div
+				className={buttonVariants({
+					variant: "ghost",
+					className:
+						"w-full p-2.5 h-auto justify-start text-muted-foreground opacity-70 cursor-not-allowed hover:bg-transparent",
+				})}
+			>
+				<div className="flex items-center gap-2.5 w-full min-w-0">
+					<div className="shrink-0">
+						<div className="size-5 rounded-full border-2 border-muted-foreground/30 bg-muted flex justify-center items-center">
+							<Lock className="size-2.5 text-muted-foreground" />
+						</div>
+					</div>
+
+					<div className="flex-1 text-left min-w-0">
+						<p className="text-xs font-medium truncate text-muted-foreground">
+							{lesson.position}. {lesson.title}
+						</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<Link
 			href={`/dashboard/courses/${slug}/learn/${lesson.id}`}

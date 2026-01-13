@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { getDivisionLeaderboard } from "../actions";
 import { LeaderboardTable } from "../_components/LeaderboardTable";
 import { checkRole, type AuthUser } from "@/lib/access-control";
-import { Role } from "@/lib/generated/prisma/enums";
 
 export const metadata: Metadata = {
 	title: "Leaderboard Divisi",
@@ -15,8 +14,8 @@ export default async function DivisionLeaderboardPage() {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Only MEMBER can access this page
-	if (user.role !== Role.MEMBER) {
+	// Minimum MEMBER role required to access this page
+	if (!checkRole(user, "MEMBER")) {
 		redirect("/dashboard/leaderboard");
 	}
 
@@ -38,10 +37,7 @@ export default async function DivisionLeaderboardPage() {
 			</div>
 
 			<div className="rounded-md border">
-				<LeaderboardTable
-					entries={entries}
-					currentUserRank={currentUserRank}
-				/>
+				<LeaderboardTable entries={entries} currentUserRank={currentUserRank} />
 			</div>
 		</div>
 	);

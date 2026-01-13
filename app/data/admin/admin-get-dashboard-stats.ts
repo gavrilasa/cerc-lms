@@ -4,7 +4,7 @@ import prisma from "@/lib/db";
 import { requireSession } from "@/app/data/auth/require-session";
 
 export async function adminGetDashboardStats() {
-	await requireSession({ minRole: "ADMIN" });
+	await requireSession({ minRole: "MENTOR" });
 
 	const [totalSignups, totalEnrolledUsers, totalCourses, totalLessons] =
 		await Promise.all([

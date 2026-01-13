@@ -24,6 +24,9 @@ export function CourseSidebar({ course }: iAppProps) {
 	const { completedLessons, totalLessons, progressPercentage } =
 		useCourseProgress({ courseData: course });
 
+	// Flatten all lessons to calculate locked status linearly
+	const allLessons = course.chapters.flatMap((chapter) => chapter.lessons);
+
 	return (
 		<div className="flex flex-col h-full">
 			<div className="pb-4 pr-4 border-b border-border">
@@ -78,19 +81,35 @@ export function CourseSidebar({ course }: iAppProps) {
 							</Button>
 						</CollapsibleTrigger>
 						<CollapsibleContent className="mt-3 pl-6 border-l-2 space-y-3">
-							{chapter.lessons.map((lesson) => (
-								<LessonItem
-									key={lesson.id}
-									lesson={lesson}
-									slug={course.slug}
-									isActive={currentLessonId === lesson.id}
-									completed={
-										lesson.lessonProgress.find(
-											(progress) => progress.lessonId === lesson.id
-										)?.completed || false
-									}
-								/>
-							))}
+							{chapter.lessons.map((lesson) => {
+								// Calculate locked status
+								const currentLessonIndex = allLessons.findIndex(
+									(l) => l.id === lesson.id
+								);
+								const previousLesson = allLessons[currentLessonIndex - 1];
+								const isPreviousCompleted = previousLesson
+									? previousLesson.lessonProgress.find(
+											(p) => p.lessonId === previousLesson.id
+										)?.completed
+									: true; // First lesson is distinct, always unlocked
+
+								const isLocked = !isPreviousCompleted;
+
+								return (
+									<LessonItem
+										key={lesson.id}
+										lesson={lesson}
+										slug={course.slug}
+										isActive={currentLessonId === lesson.id}
+										completed={
+											lesson.lessonProgress.find(
+												(progress) => progress.lessonId === lesson.id
+											)?.completed || false
+										}
+										isLocked={isLocked}
+									/>
+								);
+							})}
 						</CollapsibleContent>
 					</Collapsible>
 				))}

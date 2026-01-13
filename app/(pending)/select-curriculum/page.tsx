@@ -43,7 +43,7 @@ export default async function SelectCurriculumPage() {
 	}
 
 	return (
-		<div className="container max-w-5xl py-10 space-y-8">
+		<div className="container py-10 space-y-8 w-full">
 			<div className="space-y-2 text-center">
 				<h1 className="text-3xl font-bold tracking-tight">
 					Pilih Jalur Pembelajaran

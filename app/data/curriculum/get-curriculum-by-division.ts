@@ -20,6 +20,20 @@ export async function getCurriculumByDivision(division: Division) {
 						courses: true,
 					},
 				},
+				courses: {
+					select: {
+						order: true,
+						course: {
+							select: {
+								id: true,
+								title: true,
+							},
+						},
+					},
+					orderBy: {
+						order: "asc",
+					},
+				},
 			},
 			orderBy: {
 				createdAt: "desc",

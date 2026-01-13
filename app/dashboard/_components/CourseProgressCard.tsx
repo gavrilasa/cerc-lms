@@ -39,7 +39,7 @@ export function CourseProgressCard({ data }: iAppProps) {
 				</div>
 			</div>
 
-			<CardContent className="p-4 flex flex-col gap-3">
+			<CardContent className="p-4 flex flex-col gap-2">
 				{/* Judul Kursus */}
 				<Link
 					className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors"
@@ -55,7 +55,7 @@ export function CourseProgressCard({ data }: iAppProps) {
 				</p>
 
 				{/* Bagian Progress */}
-				<div className="mt-2 space-y-2">
+				<div className="mt-1 space-y-2">
 					<div className="flex justify-between items-end text-sm">
 						<span className="text-muted-foreground font-medium text-xs">
 							Progress

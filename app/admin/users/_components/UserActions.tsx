@@ -31,6 +31,7 @@ import { Loader2, Shield, Trash2, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserStatus, updateUserRole, deleteUser } from "../actions";
 import type { Role, UserStatus } from "@/lib/generated/prisma/enums";
+import { authClient } from "@/lib/auth-client";
 
 interface UserActionsProps {
 	user: {
@@ -42,6 +43,10 @@ interface UserActionsProps {
 }
 
 export function UserActions({ user }: UserActionsProps) {
+	const { data: session } = authClient.useSession();
+	const currentUserRole = session?.user?.role;
+	const isAdmin = currentUserRole === "ADMIN";
+
 	const [isLoading, setIsLoading] = useState(false);
 	const [isStatusOpen, setIsStatusOpen] = useState(false);
 	const [isRoleOpen, setIsRoleOpen] = useState(false);
@@ -83,6 +88,7 @@ export function UserActions({ user }: UserActionsProps) {
 	return (
 		<>
 			<div className="flex items-center justify-center gap-1">
+				{/* Status button visible for ADMIN and MENTOR */}
 				<Button
 					variant="ghost"
 					size="icon"
@@ -92,6 +98,7 @@ export function UserActions({ user }: UserActionsProps) {
 					<Shield className="h-4 w-4" />
 					<span className="sr-only">Change Status</span>
 				</Button>
+				{/* Role button visible for ADMIN and MENTOR */}
 				<Button
 					variant="ghost"
 					size="icon"
@@ -101,15 +108,18 @@ export function UserActions({ user }: UserActionsProps) {
 					<UserCog className="h-4 w-4" />
 					<span className="sr-only">Change Role</span>
 				</Button>
-				<Button
-					variant="ghost"
-					size="icon"
-					className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-					onClick={() => setIsDeleteOpen(true)}
-				>
-					<Trash2 className="h-4 w-4" />
-					<span className="sr-only">Delete User</span>
-				</Button>
+				{/* Only show Delete button for ADMIN */}
+				{isAdmin && (
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+						onClick={() => setIsDeleteOpen(true)}
+					>
+						<Trash2 className="h-4 w-4" />
+						<span className="sr-only">Delete User</span>
+					</Button>
+				)}
 			</div>
 
 			<Dialog open={isStatusOpen} onOpenChange={setIsStatusOpen}>
@@ -185,8 +195,9 @@ export function UserActions({ user }: UserActionsProps) {
 							<SelectContent>
 								<SelectItem value="USER">User</SelectItem>
 								<SelectItem value="MEMBER">Member</SelectItem>
-								<SelectItem value="MENTOR">Mentor</SelectItem>
-								<SelectItem value="ADMIN">Admin</SelectItem>
+								{/* MENTOR and ADMIN roles only visible for ADMIN */}
+								{isAdmin && <SelectItem value="MENTOR">Mentor</SelectItem>}
+								{isAdmin && <SelectItem value="ADMIN">Admin</SelectItem>}
 							</SelectContent>
 						</Select>
 					</div>

@@ -15,19 +15,23 @@ export default async function AdminLeaderboardPage() {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Only ADMIN can access this page
-	if (!checkRole(user, "ADMIN")) {
+	// ADMIN and MENTOR can access this page
+	if (!checkRole(user, "MENTOR")) {
 		redirect("/admin");
 	}
 
-	// Load initial data for first division
-	const initialDivision = Division.SOFTWARE;
+	const isAdmin = user.role === "ADMIN";
+	// For Mentors, use their own division. For Admins, default to SOFTWARE.
+	const initialDivision = isAdmin
+		? Division.SOFTWARE
+		: (user.division as Division) || Division.SOFTWARE;
 	const { entries } = await getDivisionLeaderboard(initialDivision);
 
 	return (
 		<AdminLeaderboardClient
 			initialDivision={initialDivision}
 			initialEntries={entries}
+			isAdmin={isAdmin}
 		/>
 	);
 }

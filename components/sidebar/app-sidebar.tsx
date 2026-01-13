@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { type AuthUser } from "@/lib/access-control";
 import {
 	IconCamera,
 	IconChartBar,
@@ -37,6 +38,7 @@ const data = {
 			title: "Dashboard",
 			url: "/admin",
 			icon: IconDashboard,
+			exact: true,
 		},
 		{
 			title: "Courses",
@@ -131,7 +133,19 @@ const data = {
 	],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+	user,
+	...props
+}: React.ComponentProps<typeof Sidebar> & { user: AuthUser }) {
+	// Filter nav items based on role
+	let navMain = [...data.navMain];
+	const userRole = user.role;
+
+	// Hide Curriculum from non-ADMIN users
+	if (userRole !== "ADMIN") {
+		navMain = navMain.filter((item) => item.url !== "/admin/curriculum");
+	}
+
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>
@@ -155,7 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
+				<NavMain items={navMain} />
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>

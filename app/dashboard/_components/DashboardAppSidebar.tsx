@@ -34,6 +34,7 @@ const data = {
 			title: "Dashboard",
 			url: "/dashboard",
 			icon: IconDashboard,
+			exact: true,
 		},
 		{
 			title: "Curriculum",

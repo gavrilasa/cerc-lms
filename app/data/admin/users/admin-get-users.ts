@@ -10,9 +10,18 @@ export async function getUsers(
 	divisionFilter?: Division | "ALL",
 	searchQuery?: string
 ) {
-	await requireSession({ minRole: "ADMIN" });
+	const session = await requireSession({ minRole: "MENTOR" });
+	const user = session.user;
 
 	const whereClause: Prisma.UserWhereInput = {};
+
+	// Mentor hanya bisa melihat user satu divisi atau user yang belum punya divisi (Pending)
+	if (user.role !== "ADMIN" && user.division) {
+		whereClause.OR = [
+			{ division: user.division as Division },
+			{ division: null },
+		];
+	}
 
 	if (statusFilter && statusFilter !== "ALL") {
 		whereClause.status = statusFilter;
