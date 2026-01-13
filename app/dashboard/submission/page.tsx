@@ -9,11 +9,20 @@ export const metadata: Metadata = {
 	description: "Lihat dan buat submission untuk mendapatkan poin.",
 };
 
-export default async function SubmissionPage() {
-	await requireSession();
+interface SubmissionPageProps {
+	searchParams: Promise<{
+		page?: string;
+	}>;
+}
 
-	const [submissions, enrolledCourses] = await Promise.all([
-		getUserSubmissions(),
+export default async function SubmissionPage(props: SubmissionPageProps) {
+	await requireSession();
+	const searchParams = await props.searchParams;
+	const page = Number(searchParams.page) || 1;
+	const limit = 10;
+
+	const [{ submissions, metadata }, enrolledCourses] = await Promise.all([
+		getUserSubmissions(page, limit),
 		getEnrolledCourses(),
 	]);
 
@@ -32,7 +41,7 @@ export default async function SubmissionPage() {
 			</div>
 
 			<div className="rounded-md border">
-				<SubmissionTable submissions={submissions} />
+				<SubmissionTable submissions={submissions} metadata={metadata} />
 			</div>
 		</div>
 	);

@@ -23,7 +23,6 @@ enum Division {
   EMBEDDED
   MULTIMEDIA
   NETWORKING
-  GLOBAL
 }
 
 enum UserStatus {
@@ -95,9 +94,9 @@ model User {
   selectedCurriculum   Curriculum?          @relation(fields: [selectedCurriculumId], references: [id])
   curriculumStatus     UserCurriculumStatus @default(IN_PROGRESS)
 
-  courses         Course[]
-  enrollments     Enrollment[]
-  lessonProgress  LessonProgress[]
+  courses        Course[]
+  enrollments    Enrollment[]
+  lessonProgress LessonProgress[]
 
   totalPoints         Int          @default(0)
   submissions         Submission[] @relation("UserSubmissions")

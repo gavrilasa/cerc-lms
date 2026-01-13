@@ -8,7 +8,9 @@ import { requireSession } from "@/app/data/auth/require-session";
 export async function getUsers(
 	statusFilter?: UserStatus | "ALL",
 	divisionFilter?: Division | "ALL",
-	searchQuery?: string
+	searchQuery?: string,
+	page: number = 1,
+	limit: number = 10
 ) {
 	const session = await requireSession({ minRole: "MENTOR" });
 	const user = session.user;
@@ -39,23 +41,36 @@ export async function getUsers(
 		];
 	}
 
-	const users = await prisma.user.findMany({
-		where: whereClause,
-		orderBy: {
-			createdAt: "desc",
-		},
-		select: {
-			id: true,
-			name: true,
-			email: true,
-			nim: true,
-			division: true,
-			status: true,
-			role: true,
-			createdAt: true,
-			image: true,
-		},
-	});
+	const [users, total] = await Promise.all([
+		prisma.user.findMany({
+			where: whereClause,
+			orderBy: {
+				createdAt: "desc",
+			},
+			take: limit,
+			skip: (page - 1) * limit,
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				nim: true,
+				division: true,
+				status: true,
+				role: true,
+				createdAt: true,
+				image: true,
+			},
+		}),
+		prisma.user.count({ where: whereClause }),
+	]);
 
-	return users;
+	return {
+		users,
+		metadata: {
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
 }

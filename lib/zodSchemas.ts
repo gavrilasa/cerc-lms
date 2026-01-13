@@ -6,7 +6,6 @@ export const divisions = [
 	"EMBEDDED",
 	"MULTIMEDIA",
 	"NETWORKING",
-	"GLOBAL",
 ] as const;
 
 export const courseSchema = z.object({

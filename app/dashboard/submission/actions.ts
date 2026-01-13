@@ -46,7 +46,7 @@ interface ActionResult {
 
 export type SubmissionWithDetails = Awaited<
 	ReturnType<typeof getUserSubmissions>
->[number];
+>["submissions"][number];
 
 // =============================================================================
 // User Actions
@@ -133,32 +133,45 @@ export async function createSubmission(
 /**
  * Get all submissions for the current user
  */
-export async function getUserSubmissions() {
+export async function getUserSubmissions(page: number = 1, limit: number = 10) {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	const submissions = await prisma.submission.findMany({
-		where: { userId: user.id },
-		include: {
-			course: {
-				select: {
-					id: true,
-					title: true,
-					slug: true,
+	const [submissions, total] = await Promise.all([
+		prisma.submission.findMany({
+			where: { userId: user.id },
+			include: {
+				course: {
+					select: {
+						id: true,
+						title: true,
+						slug: true,
+					},
+				},
+				links: true,
+				reviewer: {
+					select: {
+						id: true,
+						name: true,
+					},
 				},
 			},
-			links: true,
-			reviewer: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
-		},
-		orderBy: { createdAt: "desc" },
-	});
+			orderBy: { createdAt: "desc" },
+			take: limit,
+			skip: (page - 1) * limit,
+		}),
+		prisma.submission.count({ where: { userId: user.id } }),
+	]);
 
-	return submissions;
+	return {
+		submissions,
+		metadata: {
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
+		},
+	};
 }
 
 /**
@@ -197,56 +210,77 @@ export async function getEnrolledCourses() {
  * - Admins see all submissions
  * - Shows both pending and reviewed submissions
  */
-export async function getAllSubmissionsForReview() {
+export async function getAllSubmissionsForReview(
+	page: number = 1,
+	limit: number = 10
+) {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
 	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
-		return [];
+		return {
+			submissions: [],
+			metadata: {
+				total: 0,
+				page,
+				limit,
+				totalPages: 0,
+			},
+		};
 	}
 
-	const whereClause =
-		user.role === "ADMIN"
-			? {}
-			: { division: user.division! };
+	const whereClause = user.role === "ADMIN" ? {} : { division: user.division! };
 
-	const submissions = await prisma.submission.findMany({
-		where: whereClause,
-		include: {
-			user: {
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					nim: true,
-					generation: true,
+	const [submissions, total] = await Promise.all([
+		prisma.submission.findMany({
+			where: whereClause,
+			include: {
+				user: {
+					select: {
+						id: true,
+						name: true,
+						email: true,
+						nim: true,
+						generation: true,
+					},
+				},
+				course: {
+					select: {
+						id: true,
+						title: true,
+						slug: true,
+					},
+				},
+				links: true,
+				reviewer: {
+					select: {
+						id: true,
+						name: true,
+					},
 				},
 			},
-			course: {
-				select: {
-					id: true,
-					title: true,
-					slug: true,
-				},
-			},
-			links: true,
-			reviewer: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
+			orderBy: { createdAt: "desc" },
+			take: limit,
+			skip: (page - 1) * limit,
+		}),
+		prisma.submission.count({ where: whereClause }),
+	]);
+
+	return {
+		submissions,
+		metadata: {
+			total,
+			page,
+			limit,
+			totalPages: Math.ceil(total / limit),
 		},
-		orderBy: { createdAt: "desc" },
-	});
-
-	return submissions;
+	};
 }
 
 export type ReviewSubmission = Awaited<
 	ReturnType<typeof getAllSubmissionsForReview>
->[number];
+>["submissions"][number];
 
 /**
  * Grade a submission
@@ -294,7 +328,9 @@ export async function gradeSubmission(
 
 		// Division check for MENTOR (ADMIN can review all)
 		if (user.role !== "ADMIN" && submission.division !== user.division) {
-			return { error: "Anda tidak memiliki akses untuk mereview submission ini." };
+			return {
+				error: "Anda tidak memiliki akses untuk mereview submission ini.",
+			};
 		}
 
 		// Update submission and user points in a transaction

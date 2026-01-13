@@ -170,13 +170,11 @@ export function CreateCurriculumDialog() {
 											</SelectTrigger>
 										</FormControl>
 										<SelectContent>
-											{Object.values(Division)
-												.filter((d) => d !== "GLOBAL")
-												.map((div) => (
-													<SelectItem key={div} value={div}>
-														{div}
-													</SelectItem>
-												))}
+											{Object.values(Division).map((div) => (
+												<SelectItem key={div} value={div}>
+													{div}
+												</SelectItem>
+											))}
 										</SelectContent>
 									</Select>
 									<FormMessage />

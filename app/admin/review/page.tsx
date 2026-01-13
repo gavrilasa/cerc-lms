@@ -10,7 +10,13 @@ export const metadata: Metadata = {
 	description: "Review dan berikan penilaian untuk submission user.",
 };
 
-export default async function ReviewPage() {
+interface ReviewPageProps {
+	searchParams: Promise<{
+		page?: string;
+	}>;
+}
+
+export default async function ReviewPage(props: ReviewPageProps) {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
@@ -19,21 +25,26 @@ export default async function ReviewPage() {
 		redirect("/admin");
 	}
 
-	const submissions = await getAllSubmissionsForReview();
+	const searchParams = await props.searchParams;
+	const page = Number(searchParams.page) || 1;
+	const limit = 10;
+
+	const { submissions, metadata } = await getAllSubmissionsForReview(
+		page,
+		limit
+	);
 
 	return (
 		<div className="flex flex-col space-y-8">
 			<div className="flex flex-col space-y-2">
-				<h1 className="text-3xl font-bold tracking-tight">
-					Review Submission
-				</h1>
+				<h1 className="text-3xl font-bold tracking-tight">Review Submission</h1>
 				<p className="text-muted-foreground">
 					Submission yang menunggu review dari user di divisi Anda.
 				</p>
 			</div>
 
 			<div className="rounded-md border">
-				<ReviewTable submissions={submissions} />
+				<ReviewTable submissions={submissions} metadata={metadata} />
 			</div>
 		</div>
 	);

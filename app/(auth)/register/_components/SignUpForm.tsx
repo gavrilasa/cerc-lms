@@ -153,7 +153,7 @@ export function SignUpForm() {
 								<FormItem>
 									<FormLabel>NIM</FormLabel>
 									<FormControl>
-										<Input placeholder="2112012..." {...field} />
+										<Input type="number" placeholder="2112012..." {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

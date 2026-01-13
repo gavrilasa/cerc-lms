@@ -30,11 +30,19 @@ import { toast } from "sonner";
 import { gradeSubmission } from "@/app/dashboard/submission/actions";
 import { type ReviewSubmission } from "@/app/dashboard/submission/actions";
 
+import { Pagination } from "@/components/general/Pagination";
+
 interface ReviewTableProps {
 	submissions: ReviewSubmission[];
+	metadata: {
+		total: number;
+		page: number;
+		limit: number;
+		totalPages: number;
+	};
 }
 
-export function ReviewTable({ submissions }: ReviewTableProps) {
+export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 	const [selectedSubmission, setSelectedSubmission] =
 		useState<ReviewSubmission | null>(null);
 	const [score, setScore] = useState<number>(5);
@@ -67,9 +75,7 @@ export function ReviewTable({ submissions }: ReviewTableProps) {
 	if (submissions.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
-				<p className="text-muted-foreground">
-					Tidak ada submission saat ini.
-				</p>
+				<p className="text-muted-foreground">Tidak ada submission saat ini.</p>
 			</div>
 		);
 	}
@@ -105,9 +111,7 @@ export function ReviewTable({ submissions }: ReviewTableProps) {
 							<TableCell>{submission.title}</TableCell>
 							<TableCell>
 								<Badge
-									variant={
-										submission.type === "TASK" ? "default" : "secondary"
-									}
+									variant={submission.type === "TASK" ? "default" : "secondary"}
 								>
 									{submission.type}
 								</Badge>
@@ -156,6 +160,11 @@ export function ReviewTable({ submissions }: ReviewTableProps) {
 					))}
 				</TableBody>
 			</Table>
+
+			<Pagination
+				currentPage={metadata.page}
+				totalPages={metadata.totalPages}
+			/>
 
 			{/* Review Dialog */}
 			<Dialog
@@ -270,7 +279,10 @@ export function ReviewTable({ submissions }: ReviewTableProps) {
 											value={score}
 											onChange={(e) =>
 												setScore(
-													Math.min(10, Math.max(1, parseInt(e.target.value) || 1))
+													Math.min(
+														10,
+														Math.max(1, parseInt(e.target.value) || 1)
+													)
 												)
 											}
 										/>

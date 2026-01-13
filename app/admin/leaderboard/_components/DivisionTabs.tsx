@@ -13,7 +13,6 @@ const DIVISION_LABELS: Record<Division, string> = {
 	EMBEDDED: "Embedded",
 	MULTIMEDIA: "Multimedia",
 	NETWORKING: "Networking",
-	GLOBAL: "Global",
 };
 
 export function DivisionTabs({

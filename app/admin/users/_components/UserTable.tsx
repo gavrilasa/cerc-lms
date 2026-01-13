@@ -26,6 +26,8 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
 import { authClient } from "@/lib/auth-client";
 
+import { Pagination } from "@/components/general/Pagination";
+
 interface UserTableProps {
 	users: {
 		id: string;
@@ -38,9 +40,15 @@ interface UserTableProps {
 		createdAt: Date;
 		image: string | null;
 	}[];
+	metadata: {
+		total: number;
+		page: number;
+		limit: number;
+		totalPages: number;
+	};
 }
 
-export default function UserTable({ users }: UserTableProps) {
+export default function UserTable({ users, metadata }: UserTableProps) {
 	const { data: session } = authClient.useSession();
 	const isAdmin = session?.user?.role === "ADMIN";
 
@@ -55,14 +63,19 @@ export default function UserTable({ users }: UserTableProps) {
 
 	useEffect(() => {
 		const params = new URLSearchParams(searchParams.toString());
+		const currentSearch = searchParams.get("search") || "";
 
-		if (debouncedSearch === searchParams.get("search")) return;
+		if (debouncedSearch === currentSearch) return;
 
 		if (debouncedSearch) {
 			params.set("search", debouncedSearch);
 		} else {
 			params.delete("search");
 		}
+
+		// Reset page when search changes
+		params.delete("page");
+
 		router.replace(`/admin/users?${params.toString()}`);
 	}, [debouncedSearch, router, searchParams]);
 
@@ -70,6 +83,10 @@ export default function UserTable({ users }: UserTableProps) {
 		const params = new URLSearchParams(searchParams.toString());
 		if (value === "ALL") params.delete(key);
 		else params.set(key, value);
+
+		// Reset page when filter changes
+		params.delete("page");
+
 		router.push(`/admin/users?${params.toString()}`);
 	};
 
@@ -219,6 +236,12 @@ export default function UserTable({ users }: UserTableProps) {
 					</TableBody>
 				</Table>
 			</div>
+
+			{/* Pagination Controls */}
+			<Pagination
+				currentPage={metadata.page}
+				totalPages={metadata.totalPages}
+			/>
 		</div>
 	);
 }

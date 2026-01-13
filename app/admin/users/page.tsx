@@ -12,6 +12,7 @@ interface AdminUsersPageProps {
 		status?: string;
 		division?: string;
 		search?: string;
+		page?: string;
 	}>;
 }
 
@@ -21,8 +22,16 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
 	const statusFilter = (searchParams.status as UserStatus) || "ALL";
 	const divisionFilter = (searchParams.division as Division) || "ALL";
 	const searchQuery = searchParams.search || "";
+	const page = Number(searchParams.page) || 1;
+	const limit = 10;
 
-	const users = await getUsers(statusFilter, divisionFilter, searchQuery);
+	const { users, metadata } = await getUsers(
+		statusFilter,
+		divisionFilter,
+		searchQuery,
+		page,
+		limit
+	);
 
 	return (
 		<div className="p-4 space-y-4">
@@ -36,7 +45,7 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
 
 			<Card>
 				<CardContent>
-					<UserTable users={users} />
+					<UserTable users={users} metadata={metadata} />
 				</CardContent>
 			</Card>
 		</div>
