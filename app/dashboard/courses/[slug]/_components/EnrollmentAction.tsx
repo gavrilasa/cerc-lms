@@ -12,14 +12,14 @@ interface EnrollmentActionProps {
 	courseId: string;
 	courseSlug: string;
 	isEnrolled: boolean;
-	firstLessonId?: string;
+	continueLessonId?: string;
 }
 
 export function EnrollmentAction({
 	courseId,
 	courseSlug,
 	isEnrolled,
-	firstLessonId,
+	continueLessonId,
 }: EnrollmentActionProps) {
 	const [isPending, startTransition] = useTransition();
 
@@ -42,7 +42,7 @@ export function EnrollmentAction({
 
 	// KONDISI A: SUDAH ENROLL
 	if (isEnrolled) {
-		if (!firstLessonId) {
+		if (!continueLessonId) {
 			return (
 				<Button disabled variant="secondary" className="w-full sm:w-auto">
 					Materi Belum Tersedia
@@ -51,8 +51,10 @@ export function EnrollmentAction({
 		}
 
 		return (
-			<Button asChild size="lg" className="w-full sm:w-auto gap-2 text-base">
-				<Link href={`/dashboard/courses/${courseSlug}/learn/${firstLessonId}`}>
+			<Button asChild size="lg" className="w-full sm:w-full gap-2 text-base">
+				<Link
+					href={`/dashboard/courses/${courseSlug}/learn/${continueLessonId}`}
+				>
 					<PlayCircle className="w-5 h-5" />
 					Lanjutkan Belajar
 				</Link>
@@ -64,7 +66,7 @@ export function EnrollmentAction({
 	return (
 		<Button
 			size="lg"
-			className="w-full sm:w-auto gap-2 text-base font-semibold"
+			className="w-full sm:w-full gap-2 text-base font-semibold"
 			onClick={handleEnroll}
 			disabled={isPending}
 		>

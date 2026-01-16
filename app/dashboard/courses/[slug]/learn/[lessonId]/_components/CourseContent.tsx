@@ -61,13 +61,20 @@ function isContentEmpty(content: string): boolean {
 	try {
 		const parsed = JSON.parse(content);
 		// Check if it's an empty TipTap document
-		if (parsed.type === "doc" && (!parsed.content || parsed.content.length === 0)) {
+		if (
+			parsed.type === "doc" &&
+			(!parsed.content || parsed.content.length === 0)
+		) {
 			return true;
 		}
 		// Check if all content nodes are empty paragraphs
-		if (parsed.content?.every((node: { type: string; content?: unknown[] }) => 
-			node.type === "paragraph" && (!node.content || node.content.length === 0)
-		)) {
+		if (
+			parsed.content?.every(
+				(node: { type: string; content?: unknown[] }) =>
+					node.type === "paragraph" &&
+					(!node.content || node.content.length === 0)
+			)
+		) {
 			return true;
 		}
 		return false;
@@ -121,7 +128,8 @@ export function CourseContent({
 					"prose prose-sm sm:prose lg:prose-lg xl:prose-xl dark:prose-invert focus:outline-none !w-full !max-w-none",
 			},
 		},
-		content: content && !isEmpty ? JSON.parse(content) : { type: "doc", content: [] },
+		content:
+			content && !isEmpty ? JSON.parse(content) : { type: "doc", content: [] },
 	});
 
 	const handleMarkAsDone = async () => {
@@ -162,11 +170,7 @@ export function CourseContent({
 	return (
 		<div className="pb-20">
 			{/* Konten Materi atau Empty State */}
-			{isEmpty ? (
-				<EmptyLessonContent />
-			) : (
-				<EditorContent editor={editor} />
-			)}
+			{isEmpty ? <EmptyLessonContent /> : <EditorContent editor={editor} />}
 
 			{/* Divider */}
 			<div className="my-12 h-px bg-border" />
@@ -175,10 +179,11 @@ export function CourseContent({
 			<div className="flex justify-center">
 				<Button
 					size="lg"
+					variant="outline"
 					onClick={handleMarkAsDone}
 					disabled={isLoading}
 					className={cn(
-						"w-full md:w-auto min-w-[200px] gap-2 font-semibold transition-all",
+						"w-full md:w-auto min-w-[200px] gap-2 font-semibold transition-all cursor-pointer",
 						isLoading ? "opacity-80" : "hover:scale-105"
 					)}
 				>
@@ -190,7 +195,7 @@ export function CourseContent({
 					) : (
 						<>
 							Mark as Done
-							<CheckCircle className="size-5" />
+							<CheckCircle className="text-green-600 size-5" />
 						</>
 					)}
 				</Button>

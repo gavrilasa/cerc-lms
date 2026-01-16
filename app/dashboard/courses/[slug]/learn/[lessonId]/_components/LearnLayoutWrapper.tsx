@@ -1,12 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { useZenModeStore } from "@/hooks/use-zen-mode";
 import { cn } from "@/lib/utils";
 import { CourseSidebarDataType } from "@/app/data/course/get-course-sidebar-data";
 import { CourseSidebar } from "./CourseSidebar";
-// Catatan: Pastikan path import CourseSidebar sesuai dengan struktur folder Anda.
-// Berdasarkan konteks file Anda, sidebar ada di dalam folder [lessonId]/_components.
+import { useSidebar } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { PanelLeftOpen } from "lucide-react";
 
 interface LearnLayoutWrapperProps {
 	children: ReactNode;
@@ -17,14 +18,34 @@ export function LearnLayoutWrapper({
 	children,
 	course,
 }: LearnLayoutWrapperProps) {
-	const { isZenMode } = useZenModeStore();
+	const { isZenMode, toggleZenMode } = useZenModeStore();
+	const { setOpen } = useSidebar();
+	const hasClosedOnMount = useRef(false);
+
+	// Auto-close the main AppSidebar only once when entering learn mode
+	useEffect(() => {
+		if (!hasClosedOnMount.current) {
+			setOpen(false);
+			hasClosedOnMount.current = true;
+		}
+	}, [setOpen]);
 
 	return (
 		<div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden">
-			{/* Sidebar Area 
-        Kita menggunakan CSS transition untuk efek sembunyi/muncul yang halus.
-        Saat Zen Mode, width menjadi 0 dan opacity 0.
-      */}
+			{/* Floating button to open sidebar when hidden */}
+			{isZenMode && (
+				<Button
+					variant="outline"
+					size="icon"
+					className="fixed left-6 top-20 z-50 size-8 shadow-md bg-background cursor-pointer"
+					onClick={toggleZenMode}
+					title="Open sidebar"
+				>
+					<PanelLeftOpen className="size-4" />
+				</Button>
+			)}
+
+			{/* Sidebar Area */}
 			<aside
 				className={cn(
 					"border-r border-border shrink-0 transition-all duration-300 ease-in-out bg-background overflow-hidden",

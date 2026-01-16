@@ -42,7 +42,7 @@ export function LessonMainWrapper({
 					variant="ghost"
 					size="icon"
 					onClick={toggleZenMode}
-					className="text-muted-foreground hover:text-primary shrink-0"
+					className="cursor-pointer text-muted-foreground hover:text-primary shrink-0"
 					title={isZenMode ? "Exit Zen Mode" : "Enter Zen Mode"}
 				>
 					{isZenMode ? (

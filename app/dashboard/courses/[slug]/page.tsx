@@ -1,4 +1,5 @@
 import { getCourseBySlug } from "@/app/data/course/get-course-by-slug";
+import { getNextLesson } from "@/app/data/course/get-next-lesson";
 import {
 	Card,
 	CardContent,
@@ -78,11 +79,17 @@ export default async function CourseDetailPage({
 		0
 	);
 
-	// 3. Cari Lesson Pertama untuk tombol "Lanjutkan Belajar"
-	// Ambil chapter pertama, lalu lesson pertama dari chapter tersebut
-	const firstChapter = course.chapters[0];
-	const firstLesson = firstChapter?.lessons[0];
-	const firstLessonId = firstLesson?.id;
+	// 3. Cari Lesson Selanjutnya untuk tombol "Lanjutkan Belajar"
+	// Jika user sudah enroll, cari lesson pertama yang belum selesai
+	let continueLessonId: string | undefined;
+	if (enrollment) {
+		continueLessonId = await getNextLesson(course.id, user.id);
+	} else {
+		// Fallback ke lesson pertama untuk preview
+		const firstChapter = course.chapters[0];
+		const firstLesson = firstChapter?.lessons[0];
+		continueLessonId = firstLesson?.id;
+	}
 
 	return (
 		<div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
@@ -164,8 +171,8 @@ export default async function CourseDetailPage({
 							<EnrollmentAction
 								courseId={course.id}
 								courseSlug={course.slug}
-								isEnrolled={!!enrollment} // Konversi object ke boolean
-								firstLessonId={firstLessonId}
+								isEnrolled={!!enrollment}
+								continueLessonId={continueLessonId}
 							/>
 						</CardContent>
 					</Card>
