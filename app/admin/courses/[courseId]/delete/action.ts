@@ -38,9 +38,25 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			}
 		}
 
+		// Fetch course title first
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { title: true },
+		});
+
 		await prisma.course.delete({
 			where: {
 				id: courseId,
+			},
+		});
+
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "DELETE_COURSE",
+				entity: "Course",
+				details: `Deleted course ${course?.title || courseId}`,
+				userId: session.user.id,
 			},
 		});
 

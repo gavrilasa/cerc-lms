@@ -75,14 +75,14 @@ export async function createSubmission(
 
 	// User must have a division
 	if (!user.division) {
-		return { error: "Akun Anda belum terdaftar pada divisi manapun." };
+		return { error: "Your account is not registered in any division." };
 	}
 
 	try {
 		// TASK type requires courseId and enrollment check
 		if (type === SubmissionType.TASK) {
 			if (!courseId) {
-				return { error: "Course harus dipilih untuk submission tipe Task." };
+				return { error: "Course must be selected for TASK type submission." };
 			}
 
 			// Check if user is enrolled in the course
@@ -97,7 +97,7 @@ export async function createSubmission(
 
 			if (!enrollment || enrollment.status !== EnrollmentStatus.ACTIVE) {
 				return {
-					error: "Anda harus terdaftar di course ini untuk membuat submission.",
+					error: "You must be enrolled in this course to create a submission.",
 				};
 			}
 		}
@@ -123,11 +123,12 @@ export async function createSubmission(
 
 		revalidatePath("/dashboard/submission");
 
-		return { success: true, message: "Submission berhasil dibuat!" };
+		return { success: true, message: "Submission created successfully!" };
 	} catch (error) {
 		console.error("[CREATE_SUBMISSION_ERROR]", error);
 		return {
-			error: "Terjadi kesalahan saat membuat submission. Silakan coba lagi.",
+			error:
+				"An error occurred while creating the submission. Please try again.",
 		};
 	}
 }
@@ -310,7 +311,7 @@ export async function gradeSubmission(
 
 	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
-		return { error: "Anda tidak memiliki akses untuk melakukan review." };
+		return { error: "You do not have permission to perform reviews." };
 	}
 
 	// Validate input
@@ -330,21 +331,27 @@ export async function gradeSubmission(
 				status: true,
 				division: true,
 				userId: true,
+				title: true,
+				user: {
+					select: {
+						name: true,
+					},
+				},
 			},
 		});
 
 		if (!submission) {
-			return { error: "Submission tidak ditemukan." };
+			return { error: "Submission not found." };
 		}
 
 		if (submission.status === SubmissionStatus.REVIEWED) {
-			return { error: "Submission ini sudah direview." };
+			return { error: "This submission has already been reviewed." };
 		}
 
 		// Division check for MENTOR (ADMIN can review all)
 		if (user.role !== "ADMIN" && submission.division !== user.division) {
 			return {
-				error: "Anda tidak memiliki akses untuk mereview submission ini.",
+				error: "You do not have permission to review this submission.",
 			};
 		}
 
@@ -367,17 +374,26 @@ export async function gradeSubmission(
 					},
 				},
 			}),
+			// [NEW] Log the action
+			prisma.adminLog.create({
+				data: {
+					action: "GRADE_SUBMISSION",
+					entity: "Submission",
+					details: `Graded submission "${submission.title}" by ${submission.user.name} with score ${score}`,
+					userId: user.id,
+				},
+			}),
 		]);
 
 		revalidatePath("/dashboard/submission");
 		revalidatePath("/dashboard/review");
 		revalidateTag(CACHE_TAGS.LEADERBOARD, "max"); // Invalidate leaderboard when points change
 
-		return { success: true, message: "Review berhasil disimpan!" };
+		return { success: true, message: "Review saved successfully!" };
 	} catch (error) {
 		console.error("[GRADE_SUBMISSION_ERROR]", error);
 		return {
-			error: "Terjadi kesalahan saat menyimpan review. Silakan coba lagi.",
+			error: "An error occurred while saving the review. Please try again.",
 		};
 	}
 }

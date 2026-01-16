@@ -36,17 +36,17 @@ export function LoginForm() {
 
 			if (error) {
 				if (error.code === "INVALID_EMAIL_OR_PASSWORD") {
-					toast.error("Email atau password salah");
+					toast.error("Invalid email or password");
 				} else {
-					toast.error(error.message || "Gagal login");
+					toast.error(error.message || "Login failed");
 				}
 				setPending(false);
 			} else {
-				toast.success("Login berhasil");
+				toast.success("Login successful");
 				router.push("/dashboard");
 			}
 		} catch {
-			toast.error("Terjadi kesalahan koneksi");
+			toast.error("Connection error");
 			setPending(false);
 		}
 	}
@@ -54,8 +54,8 @@ export function LoginForm() {
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle className="text-xl">Login CERC LMS</CardTitle>
-				<CardDescription>Masuk menggunakan akun CERC Anda</CardDescription>
+				<CardTitle className="text-xl">Login to CERC LMS</CardTitle>
+				<CardDescription>Sign in with your CERC account</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<form onSubmit={handleSignIn} className="grid gap-4">
@@ -64,7 +64,7 @@ export function LoginForm() {
 						<Input
 							id="email"
 							type="email"
-							placeholder="nama@email.com"
+							placeholder="name@email.com"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							required
@@ -90,7 +90,7 @@ export function LoginForm() {
 						{pending ? (
 							<>
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Memproses...
+								Processing...
 							</>
 						) : (
 							"Login"
@@ -99,12 +99,12 @@ export function LoginForm() {
 				</form>
 
 				<div className="mt-4 text-center text-sm text-muted-foreground">
-					Belum punya akun?{" "}
+					Don&apos;t have an account?{" "}
 					<Link
 						href="/register"
-						className="text-primary underline hover:text-primary/80"
+						className="text-primary underline hover:text-primary/80 cursor-pointer"
 					>
-						Daftar Anggota Baru
+						Register
 					</Link>
 				</div>
 			</CardContent>

@@ -91,6 +91,16 @@ export async function CreateCourse(
 			},
 		});
 
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "CREATE_COURSE",
+				entity: "Course",
+				details: `Created course: ${validation.data.title} (${finalDivision})`,
+				userId: user.id,
+			},
+		});
+
 		return {
 			status: "success",
 			message: "Course created successfully",

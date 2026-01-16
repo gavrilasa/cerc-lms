@@ -15,6 +15,7 @@ import {
 	IconSettings,
 	IconEye,
 	IconTrophy,
+	IconHistory,
 } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
@@ -67,9 +68,14 @@ const data = {
 			exact: true,
 		},
 		{
-			title: "Leaderboard Divisi",
+			title: "Division Leaderboard",
 			url: "/admin/leaderboard/division",
 			icon: IconTrophy,
+		},
+		{
+			title: "Logs",
+			url: "/admin/logs",
+			icon: IconHistory,
 		},
 	],
 	navClouds: [

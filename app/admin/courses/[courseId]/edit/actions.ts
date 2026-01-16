@@ -74,6 +74,16 @@ export async function editCourse(
 			},
 		});
 
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "UPDATE_COURSE",
+				entity: "Course",
+				details: `Updated course ${result.data.title || courseId}`,
+				userId: user.id,
+			},
+		});
+
 		return {
 			status: "success",
 			message: "Course updated Successfully",

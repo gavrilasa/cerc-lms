@@ -35,15 +35,15 @@ import { z } from "zod";
 import { divisions } from "@/lib/zodSchemas";
 
 const signUpSchema = z.object({
-	name: z.string().min(3, "Nama minimal 3 karakter"),
-	email: z.string().email("Email tidak valid"),
-	password: z.string().min(8, "Password minimal 8 karakter"),
-	nim: z.string().min(5, "NIM wajib diisi"),
+	name: z.string().min(3, "Name must be at least 3 characters"),
+	email: z.string().email("Invalid email"),
+	password: z.string().min(8, "Password must be at least 8 characters"),
+	nim: z.string().min(5, "NIM is required"),
 	generation: z.string().refine((val) => !isNaN(Number(val)), {
-		message: "Angkatan harus berupa angka tahun",
+		message: "Generation must be a year",
 	}),
 	division: z.enum(divisions, {
-		message: "Pilih divisi yang valid",
+		message: "Select a valid division",
 	}),
 });
 
@@ -91,13 +91,15 @@ export function SignUpForm() {
 			} as SignUpPayload);
 
 			if (error) {
-				toast.error(error.message || "Gagal mendaftar");
+				toast.error(error.message || "Registration failed");
 			} else {
-				toast.success("Pendaftaran berhasil! Silakan tunggu verifikasi admin.");
+				toast.success(
+					"Registration successful! Please wait for admin verification."
+				);
 				router.push("/waiting-approval");
 			}
 		} catch {
-			toast.error("Terjadi kesalahan sistem");
+			toast.error("System error occurred");
 		} finally {
 			setPending(false);
 		}
@@ -106,9 +108,9 @@ export function SignUpForm() {
 	return (
 		<Card className="w-full max-w-md mx-auto">
 			<CardHeader>
-				<CardTitle className="text-xl">Pendaftaran Akses LMS</CardTitle>
+				<CardTitle className="text-xl">LMS Access Registration</CardTitle>
 				<CardDescription>
-					Isi data diri Anda untuk mengakses LMS CERC.
+					Fill in your details to access CERC LMS.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -119,7 +121,7 @@ export function SignUpForm() {
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Nama Lengkap</FormLabel>
+									<FormLabel>Full Name</FormLabel>
 									<FormControl>
 										<Input placeholder="John Doe" {...field} />
 									</FormControl>
@@ -166,7 +168,7 @@ export function SignUpForm() {
 								name="generation"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Angkatan</FormLabel>
+										<FormLabel>Generation</FormLabel>
 										<FormControl>
 											<Input placeholder="2024" {...field} />
 										</FormControl>
@@ -180,14 +182,14 @@ export function SignUpForm() {
 								name="division"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Pilih Divisi</FormLabel>
+										<FormLabel>Select Division</FormLabel>
 										<Select
 											onValueChange={field.onChange}
 											defaultValue={field.value}
 										>
 											<FormControl>
-												<SelectTrigger className="w-full">
-													<SelectValue placeholder="Divisi" />
+												<SelectTrigger className="w-full cursor-pointer">
+													<SelectValue placeholder="Division" />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent className="w-(--radix-select-trigger-width)">
@@ -218,14 +220,18 @@ export function SignUpForm() {
 							)}
 						/>
 
-						<Button type="submit" className="w-full" disabled={pending}>
+						<Button
+							type="submit"
+							className="w-full cursor-pointer"
+							disabled={pending}
+						>
 							{pending ? (
 								<>
 									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									Mendaftar...
+									Registering...
 								</>
 							) : (
-								"Daftar Sekarang"
+								"Register Now"
 							)}
 						</Button>
 					</form>

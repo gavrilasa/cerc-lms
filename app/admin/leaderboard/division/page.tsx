@@ -7,8 +7,8 @@ import { Division } from "@/lib/generated/prisma/enums";
 import AdminLeaderboardClient from "./client";
 
 export const metadata: Metadata = {
-	title: "Leaderboard Divisi",
-	description: "Lihat peringkat poin per divisi.",
+	title: "Division Leaderboard",
+	description: "View point rankings per division.",
 };
 
 export default async function AdminLeaderboardPage() {

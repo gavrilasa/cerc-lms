@@ -51,9 +51,10 @@ const data = {
 			title: "Leaderboard",
 			url: "/dashboard/leaderboard",
 			icon: IconTrophy,
+			exact: true,
 		},
 		{
-			title: "Leaderboard Divisi",
+			title: "Division Leaderboard",
 			url: "/dashboard/leaderboard/division",
 			icon: IconTrophy,
 			memberOnly: true,

@@ -6,9 +6,9 @@ export default function RegisterPage() {
 		<div className="flex flex-col items-center gap-4">
 			<SignUpForm />
 			<div className="text-sm text-muted-foreground">
-				Sudah punya akun?{" "}
+				Already have an account?{" "}
 				<Link href="/login" className="text-primary hover:underline">
-					Login di sini
+					Login here
 				</Link>
 			</div>
 		</div>

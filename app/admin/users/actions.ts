@@ -18,7 +18,7 @@ export async function updateUserStatus(userId: string, newStatus: UserStatus) {
 		// Fetch target user to check division
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { division: true },
+			select: { division: true, name: true },
 		});
 
 		if (!targetUser) return { error: "User not found" };
@@ -34,6 +34,17 @@ export async function updateUserStatus(userId: string, newStatus: UserStatus) {
 			where: { id: userId },
 			data: { status: newStatus },
 		});
+
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "UPDATE_STATUS",
+				entity: "User",
+				details: `Changed status of ${targetUser.name || userId} to ${newStatus}`,
+				userId: currentUser.id,
+			},
+		});
+
 		revalidatePath("/admin/users");
 		revalidateTag(CACHE_TAGS.ADMIN_STATS, "max");
 		return { success: true, message: `Status updated to ${newStatus}` };
@@ -56,6 +67,22 @@ export async function updateUserRole(userId: string, newRole: Role) {
 			where: { id: userId },
 			data: { role: newRole },
 		});
+
+		// [NEW] Log the action
+		const targetUser = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { name: true },
+		});
+
+		await prisma.adminLog.create({
+			data: {
+				action: "UPDATE_ROLE",
+				entity: "User",
+				details: `Changed role of ${targetUser?.name || userId} to ${newRole}`,
+				userId: session.user.id,
+			},
+		});
+
 		revalidatePath("/admin/users");
 		return { success: true, message: `Role updated to ${newRole}` };
 	} catch {
@@ -76,7 +103,7 @@ export async function deleteUser(userId: string) {
 		// Fetch target user to check division and status
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { division: true, status: true },
+			select: { division: true, status: true, name: true },
 		});
 
 		if (!targetUser) return { error: "User not found" };
@@ -96,6 +123,17 @@ export async function deleteUser(userId: string) {
 		await prisma.user.delete({
 			where: { id: userId },
 		});
+
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "DELETE_USER",
+				entity: "User",
+				details: `Deleted user ${targetUser.name || userId} (was ${targetUser.division || "No Division"})`,
+				userId: currentUser.id,
+			},
+		});
+
 		revalidatePath("/admin/users");
 		revalidateTag(CACHE_TAGS.ADMIN_STATS, "max");
 		revalidateTag(CACHE_TAGS.LEADERBOARD, "max");

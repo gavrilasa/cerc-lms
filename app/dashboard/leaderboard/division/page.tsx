@@ -6,8 +6,8 @@ import { LeaderboardTable } from "../_components/LeaderboardTable";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export const metadata: Metadata = {
-	title: "Leaderboard Divisi",
-	description: "Lihat peringkat poin di divisi Anda.",
+	title: "Division Leaderboard",
+	description: "View point rankings in your division.",
 };
 
 export default async function DivisionLeaderboardPage() {
@@ -29,10 +29,10 @@ export default async function DivisionLeaderboardPage() {
 		<div className="flex flex-col space-y-8">
 			<div className="flex flex-col space-y-2">
 				<h1 className="text-3xl font-bold tracking-tight">
-					Leaderboard Divisi {user.division}
+					Division Leaderboard {user.division}
 				</h1>
 				<p className="text-muted-foreground">
-					Top 15 member dengan poin tertinggi di divisi Anda.
+					Top 15 members with the highest points in your division.
 				</p>
 			</div>
 

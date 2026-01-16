@@ -56,9 +56,9 @@ export default function AdminLeaderboardClient({
 		<div className="p-4 space-y-4">
 			<div className="flex flex-col gap-1">
 				<h1 className="text-2xl font-bold tracking-tight">
-					Leaderboard Divisi
+					Division Leaderboard
 				</h1>
-				<p className="text-muted-foreground">Top 15 member per divisi.</p>
+				<p className="text-muted-foreground">Top 15 members per division.</p>
 			</div>
 
 			{/* Only show division tabs for Admins */}

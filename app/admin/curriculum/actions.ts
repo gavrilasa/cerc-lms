@@ -105,6 +105,16 @@ export async function createCurriculum(prevState: unknown, formData: FormData) {
 			},
 		});
 
+		// [NEW] Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "CREATE_CURRICULUM",
+				entity: "Curriculum",
+				details: `Created curriculum ${title} (${division})`,
+				userId: user.id,
+			},
+		});
+
 		revalidatePath("/admin/curriculum");
 		return { success: true };
 	} catch (error) {
@@ -121,7 +131,7 @@ export async function createCurriculum(prevState: unknown, formData: FormData) {
 export async function updateCurriculumStructure(
 	input: z.infer<typeof updateStructureSchema>
 ) {
-	await requireSession({ minRole: "ADMIN" });
+	const session = await requireSession({ minRole: "ADMIN" });
 
 	const validated = updateStructureSchema.safeParse(input);
 	if (!validated.success) {
@@ -155,6 +165,21 @@ export async function updateCurriculumStructure(
 		revalidatePath(`/admin/curriculum`);
 		revalidatePath(`/admin/curriculum/${curriculumId}/design`);
 
+		// [NEW] Log the action
+		const curriculum = await prisma.curriculum.findUnique({
+			where: { id: curriculumId },
+			select: { title: true },
+		});
+
+		await prisma.adminLog.create({
+			data: {
+				action: "UPDATE_CURRICULUM_STRUCTURE",
+				entity: "Curriculum",
+				details: `Updated structure for curriculum ${curriculum?.title || curriculumId} (${items.length} items)`,
+				userId: session.user.id,
+			},
+		});
+
 		return { success: true };
 	} catch (error) {
 		console.error("[UPDATE_CURRICULUM_STRUCTURE]", error);
@@ -167,7 +192,7 @@ export async function updateCurriculumStructure(
  * Dipanggil dari Dropdown menu di list kurikulum.
  */
 export async function archiveCurriculum(curriculumId: string) {
-	await requireSession({ minRole: "ADMIN" });
+	const session = await requireSession({ minRole: "ADMIN" });
 
 	if (!curriculumId) return { error: "ID is required" };
 
@@ -175,6 +200,21 @@ export async function archiveCurriculum(curriculumId: string) {
 		await prisma.curriculum.update({
 			where: { id: curriculumId },
 			data: { status: "ARCHIVED" },
+		});
+
+		// [NEW] Log the action
+		const curriculum = await prisma.curriculum.findUnique({
+			where: { id: curriculumId },
+			select: { title: true },
+		});
+
+		await prisma.adminLog.create({
+			data: {
+				action: "ARCHIVE_CURRICULUM",
+				entity: "Curriculum",
+				details: `Archived curriculum ${curriculum?.title || curriculumId}`,
+				userId: session.user.id,
+			},
 		});
 
 		revalidatePath("/admin/curriculum");
