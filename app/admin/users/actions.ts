@@ -1,7 +1,8 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache";
 import type { AuthUser } from "@/lib/access-control";
 import type { Role, UserStatus } from "@/lib/generated/prisma/enums";
 
@@ -34,6 +35,7 @@ export async function updateUserStatus(userId: string, newStatus: UserStatus) {
 			data: { status: newStatus },
 		});
 		revalidatePath("/admin/users");
+		revalidateTag(CACHE_TAGS.ADMIN_STATS, "max");
 		return { success: true, message: `Status updated to ${newStatus}` };
 	} catch {
 		return { error: "Failed to update status" };
@@ -90,6 +92,8 @@ export async function deleteUser(userId: string) {
 			where: { id: userId },
 		});
 		revalidatePath("/admin/users");
+		revalidateTag(CACHE_TAGS.ADMIN_STATS, "max");
+		revalidateTag(CACHE_TAGS.LEADERBOARD, "max");
 		return { success: true, message: "User deleted permanently" };
 	} catch (error) {
 		console.error(error);

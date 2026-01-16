@@ -3,7 +3,8 @@
 import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import type { Prisma } from "@/lib/generated/prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache";
 import {
 	SubmissionType,
 	SubmissionStatus,
@@ -370,6 +371,7 @@ export async function gradeSubmission(
 
 		revalidatePath("/dashboard/submission");
 		revalidatePath("/dashboard/review");
+		revalidateTag(CACHE_TAGS.LEADERBOARD, "max"); // Invalidate leaderboard when points change
 
 		return { success: true, message: "Review berhasil disimpan!" };
 	} catch (error) {

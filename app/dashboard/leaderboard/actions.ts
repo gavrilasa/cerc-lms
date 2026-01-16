@@ -4,6 +4,8 @@ import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { Role, Division } from "@/lib/generated/prisma/enums";
 import { type AuthUser, checkRole } from "@/lib/access-control";
+import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, CACHE_TTL } from "@/lib/cache";
 
 // =============================================================================
 // Types
@@ -31,6 +33,34 @@ const GLOBAL_LIMIT = 20;
 const DIVISION_LIMIT = 15;
 
 // =============================================================================
+// Cached Queries
+// =============================================================================
+
+// Cached query for top users (shared across all users)
+const getCachedGlobalTopUsers = unstable_cache(
+	async () => {
+		return prisma.user.findMany({
+			where: {
+				role: { in: [Role.MEMBER, Role.USER] },
+			},
+			select: {
+				id: true,
+				name: true,
+				division: true,
+				totalPoints: true,
+			},
+			orderBy: [{ totalPoints: "desc" }, { updatedAt: "asc" }],
+			take: GLOBAL_LIMIT,
+		});
+	},
+	["global-leaderboard-top-users"],
+	{
+		revalidate: CACHE_TTL.LEADERBOARD,
+		tags: [CACHE_TAGS.LEADERBOARD],
+	}
+);
+
+// =============================================================================
 // Actions
 // =============================================================================
 
@@ -43,20 +73,8 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Get top users (MEMBER and USER roles only)
-	const topUsers = await prisma.user.findMany({
-		where: {
-			role: { in: [Role.MEMBER, Role.USER] },
-		},
-		select: {
-			id: true,
-			name: true,
-			division: true,
-			totalPoints: true,
-		},
-		orderBy: [{ totalPoints: "desc" }, { updatedAt: "asc" }],
-		take: GLOBAL_LIMIT,
-	});
+	// Get top users from cache
+	const topUsers = await getCachedGlobalTopUsers();
 
 	const entries: LeaderboardEntry[] = topUsers.map((u, index) => ({
 		rank: index + 1,
