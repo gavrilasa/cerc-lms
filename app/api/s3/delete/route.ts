@@ -14,7 +14,7 @@ const aj = arcjet.withRule(
 );
 
 export async function DELETE(request: Request) {
-	const session = await requireSession({ minRole: "ADMIN" });
+	const session = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		const decision = await aj.protect(request, {
