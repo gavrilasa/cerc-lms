@@ -39,6 +39,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
 				onClick={() => handlePageChange(page - 1)}
 				disabled={page <= 1}
 				aria-label="Previous page"
+				className="cursor-pointer"
 			>
 				<ChevronLeft className="h-4 w-4" />
 			</Button>
@@ -55,6 +56,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
 				onClick={() => handlePageChange(page + 1)}
 				disabled={page >= totalPages}
 				aria-label="Next page"
+				className="cursor-pointer"
 			>
 				<ChevronRight className="h-4 w-4" />
 			</Button>
