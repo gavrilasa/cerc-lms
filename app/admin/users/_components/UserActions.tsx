@@ -27,6 +27,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Loader2, Shield, Trash2, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { updateUserStatus, updateUserRole, deleteUser } from "../actions";
@@ -108,17 +113,29 @@ export function UserActions({ user }: UserActionsProps) {
 					<UserCog className="h-4 w-4" />
 					<span className="sr-only">Change Role</span>
 				</Button>
-				{/* Only show Delete button for ADMIN */}
+				{/* Only show Delete button for ADMIN, only enable for ARCHIVED users */}
 				{isAdmin && (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-						onClick={() => setIsDeleteOpen(true)}
-					>
-						<Trash2 className="h-4 w-4" />
-						<span className="sr-only">Delete User</span>
-					</Button>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span tabIndex={user.status !== "ARCHIVED" ? 0 : undefined}>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none"
+									onClick={() => setIsDeleteOpen(true)}
+									disabled={user.status !== "ARCHIVED"}
+								>
+									<Trash2 className="h-4 w-4" />
+									<span className="sr-only">Delete User</span>
+								</Button>
+							</span>
+						</TooltipTrigger>
+						{user.status !== "ARCHIVED" && (
+							<TooltipContent>
+								<p>User must be archived before deletion</p>
+							</TooltipContent>
+						)}
+					</Tooltip>
 				)}
 			</div>
 

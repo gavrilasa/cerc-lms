@@ -50,18 +50,28 @@ export function AdminCourseCard({ data }: iAppProps) {
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-48">
 						<DropdownMenuItem asChild>
-							<Link href={`/admin/courses/${data.id}/edit`}>
+							<Link
+								href={`/admin/courses/${data.id}/edit`}
+								className="cursor-pointer"
+							>
 								<Pencil className="size-4 mr-2" /> Edit Course
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuItem asChild>
-							<Link href={`/courses/${data.slug}`} target="_blank">
+							<Link
+								href={`/courses/${data.slug}`}
+								target="_blank"
+								className="cursor-pointer"
+							>
 								<Eye className="size-4 mr-2" /> Preview
 							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem asChild>
-							<Link href={`/admin/courses/${data.id}/delete`}>
+							<Link
+								href={`/admin/courses/${data.id}/delete`}
+								className="cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10 focus:text-destructive focus:bg-destructive/10"
+							>
 								<Trash2 className="size-4 mr-2 text-destructive" /> Delete
 								Course
 							</Link>

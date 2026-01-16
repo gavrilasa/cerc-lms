@@ -73,13 +73,18 @@ export async function deleteUser(userId: string) {
 			return { error: "You cannot delete your own account." };
 		}
 
-		// Fetch target user to check division
+		// Fetch target user to check division and status
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { division: true },
+			select: { division: true, status: true },
 		});
 
 		if (!targetUser) return { error: "User not found" };
+
+		// Require user to be ARCHIVED before deletion
+		if (targetUser.status !== "ARCHIVED") {
+			return { error: "User must be archived before deletion" };
+		}
 
 		// Access Control: Admin OR (Mentor AND (same division OR target has no division))
 		if (currentUser.role !== "ADMIN") {
