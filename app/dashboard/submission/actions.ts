@@ -2,6 +2,7 @@
 
 import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import {
 	SubmissionType,
@@ -212,7 +213,9 @@ export async function getEnrolledCourses() {
  */
 export async function getAllSubmissionsForReview(
 	page: number = 1,
-	limit: number = 10
+	limit: number = 10,
+	status: string = "ALL", // ALL, PENDING, REVIEWED
+	sort: "asc" | "desc" = "desc" // desc = Newest, asc = Oldest
 ) {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
@@ -230,7 +233,17 @@ export async function getAllSubmissionsForReview(
 		};
 	}
 
-	const whereClause = user.role === "ADMIN" ? {} : { division: user.division! };
+	const whereClause: Prisma.SubmissionWhereInput =
+		user.role === "ADMIN" ? {} : { division: user.division! };
+
+	// Apply status filter
+	if (status !== "ALL") {
+		if (status === "PENDING") {
+			whereClause.status = SubmissionStatus.PENDING;
+		} else if (status === "REVIEWED") {
+			whereClause.status = SubmissionStatus.REVIEWED;
+		}
+	}
 
 	const [submissions, total] = await Promise.all([
 		prisma.submission.findMany({
@@ -257,10 +270,11 @@ export async function getAllSubmissionsForReview(
 					select: {
 						id: true,
 						name: true,
+						email: true,
 					},
 				},
 			},
-			orderBy: { createdAt: "desc" },
+			orderBy: { createdAt: sort },
 			take: limit,
 			skip: (page - 1) * limit,
 		}),

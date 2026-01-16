@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
 	Table,
 	TableBody,
@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import {
 	Dialog,
 	DialogContent,
@@ -49,6 +56,7 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 	const [feedback, setFeedback] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	const handleGrade = () => {
 		if (!selectedSubmission) return;
@@ -81,85 +89,147 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 	}
 
 	return (
-		<>
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Tanggal</TableHead>
-						<TableHead>Nama User</TableHead>
-						<TableHead>NIM</TableHead>
-						<TableHead>Judul</TableHead>
-						<TableHead>Tipe</TableHead>
-						<TableHead>Course</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead>Skor</TableHead>
-						<TableHead>Aksi</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{submissions.map((submission) => (
-						<TableRow key={submission.id}>
-							<TableCell>
-								{format(new Date(submission.createdAt), "dd MMM yyyy", {
-									locale: id,
-								})}
-							</TableCell>
-							<TableCell className="font-medium">
-								{submission.user.name}
-							</TableCell>
-							<TableCell>{submission.user.nim || "-"}</TableCell>
-							<TableCell>{submission.title}</TableCell>
-							<TableCell>
-								<Badge
-									variant={submission.type === "TASK" ? "default" : "secondary"}
-								>
-									{submission.type}
-								</Badge>
-							</TableCell>
-							<TableCell>{submission.course?.title || "-"}</TableCell>
-							<TableCell>
-								<Badge
-									variant={
-										submission.status === "REVIEWED" ? "default" : "outline"
-									}
-									className={
-										submission.status === "REVIEWED"
-											? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
-											: "bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
-									}
-								>
-									{submission.status === "REVIEWED" ? "Reviewed" : "Pending"}
-								</Badge>
-							</TableCell>
-							<TableCell>
-								{submission.score !== null ? (
-									<span className="font-semibold">{submission.score}/10</span>
-								) : (
-									<span className="text-muted-foreground">-</span>
-								)}
-							</TableCell>
-							<TableCell>
-								{submission.status === "PENDING" ? (
-									<Button
-										size="sm"
-										onClick={() => setSelectedSubmission(submission)}
-									>
-										Review
-									</Button>
-								) : (
-									<Button
-										size="sm"
-										variant="outline"
-										onClick={() => setSelectedSubmission(submission)}
-									>
-										Lihat
-									</Button>
-								)}
-							</TableCell>
+		<div className="space-y-4">
+			<div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+				<div className="flex gap-2 w-full sm:w-auto">
+					{/* Status Filter */}
+					<Select
+						defaultValue={searchParams.get("status") || "ALL"}
+						onValueChange={(val) => {
+							const params = new URLSearchParams(searchParams.toString());
+							if (val === "ALL") params.delete("status");
+							else params.set("status", val);
+							params.delete("page");
+							router.push(`/admin/review?${params.toString()}`);
+						}}
+					>
+						<SelectTrigger className="w-[150px] cursor-pointer">
+							<SelectValue placeholder="Status" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="ALL">All Status</SelectItem>
+							<SelectItem value="PENDING">Pending</SelectItem>
+							<SelectItem value="REVIEWED">Reviewed</SelectItem>
+						</SelectContent>
+					</Select>
+
+					{/* Sort Order */}
+					<Select
+						defaultValue={searchParams.get("sort") || "desc"}
+						onValueChange={(val) => {
+							const params = new URLSearchParams(searchParams.toString());
+							if (val === "desc") params.delete("sort");
+							else params.set("sort", val);
+							params.delete("page");
+							router.push(`/admin/review?${params.toString()}`);
+						}}
+					>
+						<SelectTrigger className="w-[150px] cursor-pointer">
+							<SelectValue placeholder="Sort" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="desc">Newest</SelectItem>
+							<SelectItem value="asc">Oldest</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+			</div>
+
+			<div className="border rounded-md overflow-hidden bg-white">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead className="pl-4">Date</TableHead>
+							<TableHead>Name</TableHead>
+							<TableHead>Title</TableHead>
+							<TableHead>Course</TableHead>
+							<TableHead className="text-center">Type</TableHead>
+							<TableHead className="text-center">Status</TableHead>
+							<TableHead className="text-center">Score</TableHead>
+							<TableHead className="text-center">Action</TableHead>
 						</TableRow>
-					))}
-				</TableBody>
-			</Table>
+					</TableHeader>
+					<TableBody>
+						{submissions.map((submission) => (
+							<TableRow key={submission.id}>
+								<TableCell className="pl-4">
+									{format(new Date(submission.createdAt), "dd MMM yyyy", {
+										locale: id,
+									})}
+								</TableCell>
+								<TableCell
+									className="font-medium max-w-[150px] truncate"
+									title={submission.user.name}
+								>
+									{submission.user.name}
+								</TableCell>
+								<TableCell
+									className="max-w-[150px] truncate"
+									title={submission.title}
+								>
+									{submission.title}
+								</TableCell>
+								<TableCell
+									className="max-w-[200px] truncate"
+									title={submission.course?.title || "-"}
+								>
+									{submission.course?.title || "-"}
+								</TableCell>
+								<TableCell className="text-center">
+									<Badge
+										variant={
+											submission.type === "TASK" ? "default" : "secondary"
+										}
+									>
+										{submission.type}
+									</Badge>
+								</TableCell>
+								<TableCell className="text-center">
+									<Badge
+										variant={
+											submission.status === "REVIEWED" ? "default" : "outline"
+										}
+										className={
+											submission.status === "REVIEWED"
+												? "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+												: "bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20"
+										}
+									>
+										{submission.status === "REVIEWED" ? "Reviewed" : "Pending"}
+									</Badge>
+								</TableCell>
+								<TableCell className="text-center">
+									{submission.score !== null ? (
+										<span className="font-semibold">{submission.score}/10</span>
+									) : (
+										<span className="text-muted-foreground">-</span>
+									)}
+								</TableCell>
+								<TableCell className="text-center">
+									{submission.status === "PENDING" ? (
+										<Button
+											size="sm"
+											onClick={() => setSelectedSubmission(submission)}
+											className="cursor-pointer"
+										>
+											Review
+										</Button>
+									) : (
+										<Button
+											size="sm"
+											variant="outline"
+											onClick={() => setSelectedSubmission(submission)}
+											className="cursor-pointer"
+										>
+											Lihat
+										</Button>
+									)}
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
 
 			<Pagination
 				currentPage={metadata.page}
@@ -192,12 +262,14 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 					</DialogHeader>
 
 					{selectedSubmission && (
-						<div className="space-y-4">
+						<div className="space-y-4 max-h-[60vh] overflow-y-auto px-1">
 							{/* Submission Info */}
 							<div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
 								<div>
 									<p className="text-sm text-muted-foreground">User</p>
-									<p className="font-medium">{selectedSubmission.user.name}</p>
+									<p className="font-medium break-all">
+										{selectedSubmission.user.name}
+									</p>
 									<p className="text-sm text-muted-foreground">
 										{selectedSubmission.user.nim || "No NIM"}
 									</p>
@@ -216,9 +288,11 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 							{/* Title & Description */}
 							<div>
 								<p className="text-sm text-muted-foreground">Judul</p>
-								<p className="font-medium">{selectedSubmission.title}</p>
+								<p className="font-medium break-all">
+									{selectedSubmission.title}
+								</p>
 								{selectedSubmission.description && (
-									<p className="text-sm mt-1">
+									<p className="text-sm mt-1 whitespace-pre-wrap break-all">
 										{selectedSubmission.description}
 									</p>
 								)}
@@ -234,10 +308,12 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 											href={link.url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex items-center gap-2 text-sm text-primary hover:underline"
+											className="flex items-start gap-2 text-sm text-primary hover:underline"
 										>
-											<IconExternalLink className="h-4 w-4" />
-											{link.label}: {link.url}
+											<IconExternalLink className="h-4 w-4 shrink-0 mt-0.5" />
+											<span className="break-all">
+												{link.label}: {link.url}
+											</span>
 										</a>
 									))}
 								</div>
@@ -263,7 +339,9 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 									{selectedSubmission.feedback && (
 										<div>
 											<p className="text-sm text-muted-foreground">Feedback</p>
-											<p className="mt-1">{selectedSubmission.feedback}</p>
+											<p className="mt-1 whitespace-pre-wrap break-all">
+												{selectedSubmission.feedback}
+											</p>
 										</div>
 									)}
 								</div>
@@ -306,6 +384,7 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 						<Button
 							variant="outline"
 							onClick={() => setSelectedSubmission(null)}
+							className="cursor-pointer"
 						>
 							{selectedSubmission?.status === "REVIEWED" ? "Tutup" : "Batal"}
 						</Button>
@@ -313,6 +392,7 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 							<Button
 								onClick={handleGrade}
 								disabled={!feedback.trim() || isPending}
+								className="cursor-pointer"
 							>
 								{isPending ? "Menyimpan..." : "Simpan Review"}
 							</Button>
@@ -320,6 +400,6 @@ export function ReviewTable({ submissions, metadata }: ReviewTableProps) {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</>
+		</div>
 	);
 }
