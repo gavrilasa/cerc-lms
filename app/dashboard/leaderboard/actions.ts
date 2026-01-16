@@ -13,6 +13,7 @@ interface LeaderboardEntry {
 	rank: number;
 	userId: string;
 	name: string;
+	division: Division | null;
 	totalPoints: number;
 	isCurrentUser: boolean;
 }
@@ -50,6 +51,7 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 		select: {
 			id: true,
 			name: true,
+			division: true,
 			totalPoints: true,
 		},
 		orderBy: [{ totalPoints: "desc" }, { updatedAt: "asc" }],
@@ -60,6 +62,7 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 		rank: index + 1,
 		userId: u.id,
 		name: u.name,
+		division: u.division,
 		totalPoints: u.totalPoints,
 		isCurrentUser: u.id === user.id,
 	}));
@@ -87,7 +90,7 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 		// Get current user's data
 		const currentUserData = await prisma.user.findUnique({
 			where: { id: user.id },
-			select: { id: true, name: true, totalPoints: true },
+			select: { id: true, name: true, division: true, totalPoints: true },
 		});
 
 		if (currentUserData) {
@@ -95,6 +98,7 @@ export async function getGlobalLeaderboard(): Promise<LeaderboardResult> {
 				rank: higherCount + 1,
 				userId: currentUserData.id,
 				name: currentUserData.name,
+				division: currentUserData.division,
 				totalPoints: currentUserData.totalPoints,
 				isCurrentUser: true,
 			};
@@ -138,6 +142,7 @@ export async function getDivisionLeaderboard(
 		select: {
 			id: true,
 			name: true,
+			division: true,
 			totalPoints: true,
 		},
 		orderBy: [{ totalPoints: "desc" }, { updatedAt: "asc" }],
@@ -148,6 +153,7 @@ export async function getDivisionLeaderboard(
 		rank: index + 1,
 		userId: u.id,
 		name: u.name,
+		division: u.division,
 		totalPoints: u.totalPoints,
 		isCurrentUser: u.id === user.id,
 	}));
@@ -180,7 +186,7 @@ export async function getDivisionLeaderboard(
 		// Get current user's data
 		const currentUserData = await prisma.user.findUnique({
 			where: { id: user.id },
-			select: { id: true, name: true, totalPoints: true },
+			select: { id: true, name: true, division: true, totalPoints: true },
 		});
 
 		if (currentUserData) {
@@ -188,6 +194,7 @@ export async function getDivisionLeaderboard(
 				rank: higherCount + 1,
 				userId: currentUserData.id,
 				name: currentUserData.name,
+				division: currentUserData.division,
 				totalPoints: currentUserData.totalPoints,
 				isCurrentUser: true,
 			};

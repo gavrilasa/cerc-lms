@@ -1,17 +1,17 @@
 import { Metadata } from "next";
 import { requireSession } from "@/app/data/auth/require-session";
 import { redirect } from "next/navigation";
-import { getDivisionLeaderboard } from "@/app/dashboard/leaderboard/actions";
+import { getGlobalLeaderboard } from "@/app/dashboard/leaderboard/actions";
 import { checkRole, type AuthUser } from "@/lib/access-control";
-import { Division } from "@/lib/generated/prisma/enums";
-import AdminLeaderboardClient from "./client";
+import { LeaderboardTable } from "@/app/dashboard/leaderboard/_components/LeaderboardTable";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-	title: "Leaderboard Divisi",
-	description: "Lihat peringkat poin per divisi.",
+	title: "Leaderboard Global",
+	description: "Lihat peringkat poin global.",
 };
 
-export default async function AdminLeaderboardPage() {
+export default async function AdminGlobalLeaderboardPage() {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
@@ -20,18 +20,27 @@ export default async function AdminLeaderboardPage() {
 		redirect("/admin");
 	}
 
-	const isAdmin = user.role === "ADMIN";
-	// For Mentors, use their own division. For Admins, default to SOFTWARE.
-	const initialDivision = isAdmin
-		? Division.SOFTWARE
-		: (user.division as Division) || Division.SOFTWARE;
-	const { entries } = await getDivisionLeaderboard(initialDivision);
+	const { entries, currentUserRank } = await getGlobalLeaderboard();
 
 	return (
-		<AdminLeaderboardClient
-			initialDivision={initialDivision}
-			initialEntries={entries}
-			isAdmin={isAdmin}
-		/>
+		<div className="p-4 space-y-4">
+			<div className="flex flex-col gap-1">
+				<h1 className="text-2xl font-bold tracking-tight">
+					Leaderboard Global
+				</h1>
+				<p className="text-muted-foreground">
+					Top 20 user dengan poin tertinggi.
+				</p>
+			</div>
+
+			<Card>
+				<CardContent>
+					<LeaderboardTable
+						entries={entries}
+						currentUserRank={currentUserRank}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { requireSession } from "@/app/data/auth/require-session";
 import { getGlobalLeaderboard } from "./actions";
 import { LeaderboardTable } from "./_components/LeaderboardTable";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
 	title: "Leaderboard",
@@ -14,9 +15,9 @@ export default async function LeaderboardPage() {
 	const { entries, currentUserRank } = await getGlobalLeaderboard();
 
 	return (
-		<div className="flex flex-col space-y-8">
-			<div className="flex flex-col space-y-2">
-				<h1 className="text-3xl font-bold tracking-tight">
+		<div className="p-4 space-y-4">
+			<div className="flex flex-col gap-1">
+				<h1 className="text-2xl font-bold tracking-tight">
 					Leaderboard Global
 				</h1>
 				<p className="text-muted-foreground">
@@ -24,12 +25,14 @@ export default async function LeaderboardPage() {
 				</p>
 			</div>
 
-			<div className="rounded-md border">
-				<LeaderboardTable
-					entries={entries}
-					currentUserRank={currentUserRank}
-				/>
-			</div>
+			<Card>
+				<CardContent>
+					<LeaderboardTable
+						entries={entries}
+						currentUserRank={currentUserRank}
+					/>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

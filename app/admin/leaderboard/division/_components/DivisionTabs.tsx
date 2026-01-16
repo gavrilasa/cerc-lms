@@ -26,7 +26,7 @@ export function DivisionTabs({
 		>
 			<TabsList>
 				{Object.entries(DIVISION_LABELS).map(([key, label]) => (
-					<TabsTrigger key={key} value={key}>
+					<TabsTrigger key={key} value={key} className="cursor-pointer">
 						{label}
 					</TabsTrigger>
 				))}

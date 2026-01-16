@@ -61,8 +61,14 @@ const data = {
 			icon: IconEye,
 		},
 		{
-			title: "Leaderboard Divisi",
+			title: "Leaderboard",
 			url: "/admin/leaderboard",
+			icon: IconTrophy,
+			exact: true,
+		},
+		{
+			title: "Leaderboard Divisi",
+			url: "/admin/leaderboard/division",
 			icon: IconTrophy,
 		},
 	],

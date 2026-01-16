@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
 
 const data = {
 	navMain: [
@@ -55,6 +56,7 @@ const data = {
 			title: "Leaderboard Divisi",
 			url: "/dashboard/leaderboard/division",
 			icon: IconTrophy,
+			memberOnly: true,
 		},
 	],
 	navClouds: [
@@ -125,6 +127,17 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const { data: session } = authClient.useSession();
+	const isMember = session?.user?.role === "MEMBER";
+
+	// Filter nav items based on user role
+	const filteredNavMain = data.navMain.filter((item) => {
+		if ("memberOnly" in item && item.memberOnly) {
+			return isMember;
+		}
+		return true;
+	});
+
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>
@@ -148,7 +161,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} />
+				<NavMain items={filteredNavMain} />
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>
