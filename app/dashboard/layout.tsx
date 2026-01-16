@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import { requireSession } from "@/app/data/auth/require-session";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
+import { checkRole, type AuthUser } from "@/lib/access-control";
 
 export default async function DashboardLayout({
 	children,
@@ -14,6 +15,12 @@ export default async function DashboardLayout({
 	children: ReactNode;
 }) {
 	const { user } = await requireSession();
+	const authUser = user as unknown as AuthUser;
+
+	// Redirect ADMIN and MENTOR to /admin - they should not access learner dashboard
+	if (checkRole(authUser, "MENTOR")) {
+		redirect("/admin");
+	}
 
 	if (user.status === "VERIFIED") {
 		if (!user.selectedCurriculumId) {
