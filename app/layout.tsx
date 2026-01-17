@@ -18,6 +18,9 @@ export const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
 	title: "CERC LMS",
 	description: "Learning Management System",
+	metadataBase: new URL(
+		process.env.NEXT_PUBLIC_APP_URL || "https://cerc-lms.vercel.app"
+	),
 };
 
 export default function RootLayout({
