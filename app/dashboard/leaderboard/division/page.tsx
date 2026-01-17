@@ -5,6 +5,8 @@ import { getDivisionLeaderboard } from "../actions";
 import { LeaderboardTable } from "../_components/LeaderboardTable";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 
+import { Card, CardContent } from "@/components/ui/card";
+
 export const metadata: Metadata = {
 	title: "Division Leaderboard",
 	description: "View point rankings in your division.",
@@ -26,19 +28,25 @@ export default async function DivisionLeaderboardPage() {
 	const { entries, currentUserRank } = await getDivisionLeaderboard();
 
 	return (
-		<div className="flex flex-col space-y-8">
-			<div className="flex flex-col space-y-2">
-				<h1 className="text-3xl font-bold tracking-tight">
-					Division Leaderboard {user.division}
+		<div className="p-4 space-y-4">
+			<div className="flex flex-col gap-1">
+				<h1 className="text-2xl font-bold tracking-tight">
+					Division Leaderboard{" "}
+					<span className="capitalize">{user.division?.toLowerCase()}</span>
 				</h1>
 				<p className="text-muted-foreground">
 					Top 15 members with the highest points in your division.
 				</p>
 			</div>
 
-			<div className="rounded-md border">
-				<LeaderboardTable entries={entries} currentUserRank={currentUserRank} />
-			</div>
+			<Card>
+				<CardContent>
+					<LeaderboardTable
+						entries={entries}
+						currentUserRank={currentUserRank}
+					/>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

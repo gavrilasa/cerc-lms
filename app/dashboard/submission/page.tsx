@@ -4,6 +4,8 @@ import { getUserSubmissions, getEnrolledCourses } from "./actions";
 import { SubmissionTable } from "./_components/SubmissionTable";
 import { CreateSubmissionDialog } from "./_components/CreateSubmissionDialog";
 
+import { Card, CardContent } from "@/components/ui/card";
+
 export const metadata: Metadata = {
 	title: "Submission",
 	description: "Lihat dan buat submission untuk mendapatkan poin.",
@@ -27,22 +29,22 @@ export default async function SubmissionPage(props: SubmissionPageProps) {
 	]);
 
 	return (
-		<div className="flex flex-col space-y-8">
-			<div className="flex flex-col space-y-2">
-				<div className="flex items-center justify-between">
-					<div>
-						<h1 className="text-3xl font-bold tracking-tight">Submission</h1>
-						<p className="text-muted-foreground">
-							Kirim tugas atau project untuk mendapatkan poin.
-						</p>
-					</div>
-					<CreateSubmissionDialog enrolledCourses={enrolledCourses} />
+		<div className="p-4 space-y-4">
+			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<div className="flex flex-col gap-1">
+					<h1 className="text-2xl font-bold tracking-tight">Submission</h1>
+					<p className="text-muted-foreground">
+						Send tasks or projects to earn points.
+					</p>
 				</div>
+				<CreateSubmissionDialog enrolledCourses={enrolledCourses} />
 			</div>
 
-			<div className="rounded-md border">
-				<SubmissionTable submissions={submissions} metadata={metadata} />
-			</div>
+			<Card>
+				<CardContent>
+					<SubmissionTable submissions={submissions} metadata={metadata} />
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

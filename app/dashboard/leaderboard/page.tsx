@@ -21,7 +21,7 @@ export default async function LeaderboardPage() {
 					Leaderboard Global
 				</h1>
 				<p className="text-muted-foreground">
-					Top 20 user dengan poin tertinggi.
+					Top 20 user with the highest points.
 				</p>
 			</div>
 

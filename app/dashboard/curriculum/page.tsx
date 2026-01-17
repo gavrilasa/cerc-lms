@@ -39,9 +39,9 @@ export default async function CurriculumPage() {
 
 	// 3. Rendering
 	return (
-		<div className="flex flex-col space-y-8 p-8">
-			<div className="flex flex-col space-y-2">
-				<h1 className="text-3xl font-bold tracking-tight">
+		<div className="flex flex-col space-y-4 p-4">
+			<div className="flex flex-col gap-1">
+				<h1 className="text-2xl font-bold tracking-tight">
 					Curriculum Roadmap
 				</h1>
 				<p className="text-muted-foreground">

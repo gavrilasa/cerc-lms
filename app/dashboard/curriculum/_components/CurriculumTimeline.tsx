@@ -16,7 +16,7 @@ const CurriculumTimeline = ({ items, className }: CurriculumTimelineProps) => {
 	return (
 		<section className={cn("w-full py-8", className)}>
 			<div className="container px-4 md:px-6">
-				<div className="relative mx-auto max-w-3xl">
+				<div className="relative max-w-3xl">
 					<div className="absolute left-4 top-4 h-[calc(100%-2rem)] w-0.5 bg-muted md:left-6" />
 
 					{items.map((item, index) => {

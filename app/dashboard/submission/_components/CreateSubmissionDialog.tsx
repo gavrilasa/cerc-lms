@@ -76,11 +76,7 @@ export function CreateSubmissionDialog({
 		}
 	};
 
-	const updateLink = (
-		index: number,
-		field: "label" | "url",
-		value: string
-	) => {
+	const updateLink = (index: number, field: "label" | "url", value: string) => {
 		const newLinks = [...links];
 		newLinks[index][field] = value;
 		setLinks(newLinks);
@@ -117,7 +113,7 @@ export function CreateSubmissionDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>
+				<Button className="cursor-pointer">
 					<IconPlus className="mr-2 h-4 w-4" />
 					Buat Submission
 				</Button>
@@ -134,7 +130,10 @@ export function CreateSubmissionDialog({
 					{/* Type Selection with Tabs */}
 					<div className="space-y-2">
 						<Label>Tipe Submission</Label>
-						<Tabs value={type} onValueChange={(v) => setType(v as "TASK" | "PROJECT")}>
+						<Tabs
+							value={type}
+							onValueChange={(v) => setType(v as "TASK" | "PROJECT")}
+						>
 							<TabsList className="w-full">
 								<TabsTrigger value="TASK" className="flex-1">
 									Task (Tugas Course)

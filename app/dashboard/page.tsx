@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
 	return (
-		<div className="flex flex-col gap-y-8 pb-10">
+		<div className="flex flex-col gap-y-8 p-4">
 			<Suspense fallback={<DashboardHeaderSkeleton />}>
 				<DashboardHeader />
 			</Suspense>
