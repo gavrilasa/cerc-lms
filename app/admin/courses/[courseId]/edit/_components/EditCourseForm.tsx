@@ -65,7 +65,7 @@ export function EditCourseForm({
 	function onSubmit(values: CourseSchemaType) {
 		startTransition(async () => {
 			const { data: result, error } = await tryCatch(
-				editCourse(values, data.id)
+				editCourse(values, data.id),
 			);
 
 			if (error) {
@@ -76,7 +76,6 @@ export function EditCourseForm({
 			if (result?.status === "success") {
 				toast.success(result?.message);
 				router.push("/admin/courses");
-				router.refresh();
 			} else if (result?.status === "error") {
 				toast.error(result?.message);
 			}
@@ -238,7 +237,7 @@ export function EditCourseForm({
 					/>
 				</div>
 
-				<Button type="submit" disabled={pending}>
+				<Button type="submit" disabled={pending} className="cursor-pointer">
 					{pending ? (
 						<>
 							Updating... <Loader2 className="animate-spin" />

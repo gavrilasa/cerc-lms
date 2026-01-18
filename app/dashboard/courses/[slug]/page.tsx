@@ -12,6 +12,7 @@ import { BookOpen, Lock } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
+import { RichTextRenderer } from "@/components/general/RichTextRenderer";
 import { Division } from "@/lib/generated/prisma/enums";
 import { requireSession } from "@/app/data/auth/require-session";
 import { checkUserEnrollment } from "@/app/data/user/check-enrollment";
@@ -22,42 +23,6 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-
-interface TiptapNode {
-	type?: string;
-	text?: string;
-	content?: TiptapNode[];
-}
-
-interface TiptapDoc {
-	type: "doc";
-	content?: TiptapNode[];
-}
-
-// Utilitas Parsing JSON Deskripsi
-function getJSONContent(description: string | null) {
-	if (!description) return "No description available";
-	try {
-		const json = JSON.parse(description) as TiptapDoc;
-
-		// Cek struktur Tiptap
-		if (json.content && Array.isArray(json.content)) {
-			return json.content
-				.map((node) => {
-					if (node.content && Array.isArray(node.content)) {
-						return node.content
-							.map((innerNode) => innerNode.text || "")
-							.join(" ");
-					}
-					return node.text || "";
-				})
-				.join("\n\n");
-		}
-		return description;
-	} catch {
-		return description;
-	}
-}
 
 export default async function CourseDetailPage({
 	params,
@@ -76,7 +41,7 @@ export default async function CourseDetailPage({
 	// 2. Hitung total lessons
 	const totalLessons = course.chapters.reduce(
 		(acc, chapter) => acc + chapter.lessons.length,
-		0
+		0,
 	);
 
 	// 3. Cari Lesson Selanjutnya untuk tombol "Lanjutkan Belajar"
@@ -100,8 +65,8 @@ export default async function CourseDetailPage({
 						<h1 className="text-3xl font-bold tracking-tight mb-4">
 							{course.title}
 						</h1>
-						<div className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-							{getJSONContent(course.description)}
+						<div className="text-lg text-muted-foreground leading-relaxed">
+							<RichTextRenderer content={course.description} />
 						</div>
 					</div>
 

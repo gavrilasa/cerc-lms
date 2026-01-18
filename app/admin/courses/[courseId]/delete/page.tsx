@@ -48,7 +48,7 @@ export default function DeleteCourseRoute() {
 				<CardContent className="flex items-center justify-between">
 					<Link
 						className={buttonVariants({ variant: "outline" })}
-						href={`admin/courses`}
+						href={`/admin/courses`}
 					>
 						Cancel
 					</Link>

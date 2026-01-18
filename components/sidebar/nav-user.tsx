@@ -40,7 +40,7 @@ export function NavUser() {
 		<SidebarMenu>
 			<SidebarMenuItem>
 				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
+					<DropdownMenuTrigger asChild className="cursor-pointer">
 						<SidebarMenuButton
 							size="lg"
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -128,7 +128,10 @@ export function NavUser() {
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={handleSignOut}>
+						<DropdownMenuItem
+							onClick={handleSignOut}
+							className="cursor-pointer"
+						>
 							<IconLogout />
 							Log out
 						</DropdownMenuItem>
