@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/accordion";
 import { Metadata } from "next";
 
+import { requireSession } from "@/app/data/auth/require-session";
+
 export const metadata: Metadata = {
 	title: "Preview Course",
 };
@@ -32,6 +34,7 @@ export default async function AdminCoursePreviewPage({
 }: {
 	params: Promise<{ courseId: string }>;
 }) {
+	await requireSession({ minRole: "MENTOR" });
 	const { courseId } = await params;
 	const course = await adminGetCourse(courseId);
 

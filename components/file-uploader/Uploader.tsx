@@ -68,7 +68,8 @@ export function Uploader({ onChange, value, fileTypeAccepted }: iAppProps) {
 				});
 
 				if (!presignedResponse.ok) {
-					toast.error("Failed to get presigned URL");
+					const errorData = await presignedResponse.json();
+					toast.error(errorData.error || "Failed to get presigned URL");
 					setFileState((prev) => ({
 						...prev,
 						uploading: false,
@@ -124,7 +125,7 @@ export function Uploader({ onChange, value, fileTypeAccepted }: iAppProps) {
 				}));
 			}
 		},
-		[fileTypeAccepted, onChange]
+		[fileTypeAccepted, onChange],
 	);
 
 	const onDrop = useCallback(
@@ -149,7 +150,7 @@ export function Uploader({ onChange, value, fileTypeAccepted }: iAppProps) {
 				uploadFile(file);
 			}
 		},
-		[fileState.objectUrl, uploadFile, fileTypeAccepted]
+		[fileState.objectUrl, uploadFile, fileTypeAccepted],
 	);
 
 	async function handleRemoveFile() {
@@ -212,11 +213,11 @@ export function Uploader({ onChange, value, fileTypeAccepted }: iAppProps) {
 	function rejectedFiles(fileRejection: FileRejection[]) {
 		if (fileRejection.length) {
 			const tooManyFiles = fileRejection.find(
-				(rejection) => rejection.errors[0].code == "too-many-files"
+				(rejection) => rejection.errors[0].code == "too-many-files",
 			);
 
 			const fileSizeToBig = fileRejection.find(
-				(rejection) => rejection.errors[0].code == "file-too-large"
+				(rejection) => rejection.errors[0].code == "file-too-large",
 			);
 
 			if (fileSizeToBig) {
@@ -280,7 +281,7 @@ export function Uploader({ onChange, value, fileTypeAccepted }: iAppProps) {
 				"relative border-2 border-dashed transition-colors duration-200 ease-in-out w-full h-64",
 				isDragActive
 					? "border-primary bg-primary/10 border-solid"
-					: "border-border hover:border-primary"
+					: "border-border hover:border-primary",
 			)}
 		>
 			<CardContent className="flex items-center justify-center w-full h-full p-4">

@@ -10,18 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditCourseForm } from "./_components/EditCourseForm";
 import { CourseStructure } from "./_components/CourseStructure";
 import { requireSession } from "@/app/data/auth/require-session";
-import { redirect } from "next/navigation";
 
 type Params = Promise<{ courseId: string }>;
 
 export default async function EditRoute({ params }: { params: Params }) {
 	const { courseId } = await params;
 	const data = await adminGetCourse(courseId);
-	const { user } = await requireSession();
-
-	if (!user.role) {
-		redirect("/not-admin");
-	}
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	return (
 		<div>
@@ -44,7 +39,7 @@ export default async function EditRoute({ params }: { params: Params }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<EditCourseForm data={data} userRole={user.role} />
+							<EditCourseForm data={data} userRole={user.role ?? undefined} />
 						</CardContent>
 					</Card>
 				</TabsContent>

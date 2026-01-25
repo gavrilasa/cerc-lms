@@ -52,13 +52,13 @@ export function EditCourseForm({
 	const form = useForm<CourseSchemaType>({
 		resolver: zodResolver(courseSchema),
 		defaultValues: {
-			title: data.title,
-			description: data.description,
-			fileKey: data.fileKey,
-			smallDescription: data.smallDescription,
-			slug: data.slug,
+			title: data.title ?? "",
+			description: data.description ?? "",
+			fileKey: data.fileKey ?? "",
+			smallDescription: data.smallDescription ?? "",
+			slug: data.slug ?? "",
 			status: data.status,
-			division: data.division,
+			division: data.division ?? undefined,
 		},
 	});
 

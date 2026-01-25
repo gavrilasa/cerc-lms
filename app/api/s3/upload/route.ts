@@ -8,13 +8,24 @@ import { S3 } from "@/lib/S3Client";
 import arcjet, { fixedWindow } from "@/lib/arcjet";
 import { requireSession } from "@/app/data/auth/require-session";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_FILE_TYPES = [
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+	"image/gif",
+];
+
 export const fileUploadSchema = z.object({
 	fileName: z.string().min(1, { message: "Flename is required" }),
-	contentType: z
-		.string()
-		.min(1, { message: "Content type must match the requirement" }),
-	size: z.number().min(1, { message: "Size is required" }),
-	isImage: z.boolean(),
+	contentType: z.string().refine((val) => ALLOWED_FILE_TYPES.includes(val), {
+		message: "Invalid file type. Only JPG, PNG, WEBP, and GIF are allowed.",
+	}),
+	size: z
+		.number()
+		.min(1, { message: "Size is required" })
+		.max(MAX_FILE_SIZE, { message: "File size must be less than 5MB" }),
+	isImage: z.boolean().optional(),
 });
 
 const aj = arcjet.withRule(
@@ -22,7 +33,7 @@ const aj = arcjet.withRule(
 		mode: "LIVE",
 		window: "1m",
 		max: 5,
-	})
+	}),
 );
 
 export async function POST(request: Request) {
@@ -43,8 +54,8 @@ export async function POST(request: Request) {
 
 		if (!validation.success) {
 			return NextResponse.json(
-				{ error: "Invalid Request Body" },
-				{ status: 400 }
+				{ error: validation.error.issues[0].message },
+				{ status: 400 },
 			);
 		}
 
@@ -70,7 +81,7 @@ export async function POST(request: Request) {
 	} catch {
 		return NextResponse.json(
 			{ error: "Failed to generate presigned URL" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
