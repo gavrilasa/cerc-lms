@@ -19,8 +19,30 @@ export const metadata: Metadata = {
 	title: "CERC LMS",
 	description: "Learning Management System",
 	metadataBase: new URL(
-		process.env.NEXT_PUBLIC_APP_URL || "https://cerc-lms.vercel.app"
+		process.env.NEXT_PUBLIC_APP_URL || "https://cerc-lms.vercel.app",
 	),
+	openGraph: {
+		title: "CERC LMS",
+		description: "Learning Management System",
+		url: "/",
+		siteName: "CERC LMS",
+		locale: "id_ID",
+		type: "website",
+		images: [
+			{
+				url: "/opengraph-image.png",
+				width: 1200,
+				height: 630,
+				alt: "CERC LMS - Learning Management System",
+			},
+		],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "CERC LMS",
+		description: "Learning Management System",
+		images: ["/opengraph-image.png"],
+	},
 };
 
 export default function RootLayout({
