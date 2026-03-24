@@ -28,7 +28,7 @@ export async function editCourse(
 	data: CourseSchemaType,
 	courseId: string
 ): Promise<ApiResponse> {
-	const { user } = await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		const req = await request();
@@ -59,6 +59,35 @@ export async function editCourse(
 			};
 		}
 
+		// Fetch course to check ownership and division
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { userId: true, division: true, title: true },
+		});
+
+		if (!course) {
+			return {
+				status: "error",
+				message: "Course not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only edit their own courses, ADMIN can edit any
+		if (user.role !== "ADMIN" && course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only edit courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
+			};
+		}
+
 		const division = result.data.division
 			? (result.data.division as Division)
 			: undefined;
@@ -66,7 +95,6 @@ export async function editCourse(
 		await prisma.course.update({
 			where: {
 				id: courseId,
-				userId: user.id,
 			},
 			data: {
 				...result.data,
@@ -105,13 +133,42 @@ export async function reorderLessons(
 	}[],
 	courseId: string
 ): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		if (!lessons || lessons.length === 0) {
 			return {
 				status: "error",
 				message: "No lessons provided for reordering",
+			};
+		}
+
+		// Fetch course to check division and ownership
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { userId: true, division: true, title: true },
+		});
+
+		if (!course) {
+			return {
+				status: "error",
+				message: "Course not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only reorder their own courses, ADMIN can reorder any
+		if (user.role !== "ADMIN" && course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only reorder lessons in courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
 			};
 		}
 
@@ -128,6 +185,16 @@ export async function reorderLessons(
 		);
 
 		await prisma.$transaction(updates);
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "REORDER_LESSONS",
+				entity: "Lesson",
+				details: `Reordered lessons in course ${course.title || courseId}`,
+				userId: user.id,
+			},
+		});
 
 		revalidatePath(`/admin/courses/${courseId}/edit`);
 
@@ -150,13 +217,42 @@ export async function reorderChapters(
 		position: number;
 	}[]
 ): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		if (!chapters || chapters.length === 0) {
 			return {
 				status: "error",
 				message: "No chapters provided for reordering",
+			};
+		}
+
+		// Fetch course to check division and ownership
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: { userId: true, division: true, title: true },
+		});
+
+		if (!course) {
+			return {
+				status: "error",
+				message: "Course not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only reorder their own courses, ADMIN can reorder any
+		if (user.role !== "ADMIN" && course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only reorder chapters in courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
 			};
 		}
 
@@ -173,6 +269,16 @@ export async function reorderChapters(
 		);
 
 		await prisma.$transaction(updates);
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "REORDER_CHAPTERS",
+				entity: "Chapter",
+				details: `Reordered chapters in course ${course.title || courseId}`,
+				userId: user.id,
+			},
+		});
 
 		revalidatePath(`/admin/courses/${courseId}/edit`);
 
@@ -191,7 +297,7 @@ export async function reorderChapters(
 export async function createChapter(
 	values: ChapterSchemaType
 ): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
 		const result = chapterSchema.safeParse(values);
 
@@ -199,6 +305,35 @@ export async function createChapter(
 			return {
 				status: "error",
 				message: "Invalid data",
+			};
+		}
+
+		// Fetch course to check division and ownership
+		const course = await prisma.course.findUnique({
+			where: { id: result.data.courseId },
+			select: { userId: true, division: true, title: true },
+		});
+
+		if (!course) {
+			return {
+				status: "error",
+				message: "Course not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only add chapters to their own courses, ADMIN can add to any
+		if (user.role !== "ADMIN" && course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only add chapters to courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
 			};
 		}
 
@@ -215,13 +350,23 @@ export async function createChapter(
 				},
 			});
 
-			await tx.chapter.create({
+			return await tx.chapter.create({
 				data: {
 					title: result.data.title,
 					courseId: result.data.courseId,
 					position: (maxPos?.position ?? 0) + 1,
 				},
 			});
+		});
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "CREATE_CHAPTER",
+				entity: "Chapter",
+				details: `Created chapter "${result.data.title}" in course "${course.title}"`,
+				userId: user.id,
+			},
 		});
 
 		revalidatePath(`/admin/courses/${result.data.courseId}/edit`);
@@ -242,7 +387,7 @@ export async function createLesson(
 	// PERBAIKAN: Menggunakan LessonSchemaType, bukan ChapterSchemaType
 	values: LessonSchemaType
 ): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
 		const result = lessonSchema.safeParse(values);
 
@@ -250,6 +395,39 @@ export async function createLesson(
 			return {
 				status: "error",
 				message: "Invalid data",
+			};
+		}
+
+		// Fetch chapter with course to check division and ownership
+		const chapter = await prisma.chapter.findUnique({
+			where: { id: result.data.chapterId },
+			include: {
+				course: {
+					select: { userId: true, division: true, title: true },
+				},
+			},
+		});
+
+		if (!chapter) {
+			return {
+				status: "error",
+				message: "Chapter not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only add lessons to their own courses, ADMIN can add to any
+		if (user.role !== "ADMIN" && chapter.course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only add lessons to courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && chapter.course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
 			};
 		}
 
@@ -266,7 +444,7 @@ export async function createLesson(
 				},
 			});
 
-			await tx.lesson.create({
+			return await tx.lesson.create({
 				data: {
 					title: result.data.title, // Menggunakan title
 					description: result.data.description,
@@ -275,6 +453,16 @@ export async function createLesson(
 					position: (maxPos?.position ?? 0) + 1,
 				},
 			});
+		});
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "CREATE_LESSON",
+				entity: "Lesson",
+				details: `Created lesson "${result.data.title}" in chapter "${chapter.title}" of course "${chapter.course.title}"`,
+				userId: user.id,
+			},
 		});
 
 		revalidatePath(`/admin/courses/${result.data.courseId}/edit`);
@@ -300,8 +488,45 @@ export async function deleteLesson({
 	courseId: string;
 	lessonId: string;
 }): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
+		// Fetch lesson with chapter and course to check ownership
+		const lesson = await prisma.lesson.findUnique({
+			where: { id: lessonId },
+			include: {
+				chapter: {
+					include: {
+						course: {
+							select: { userId: true, division: true, title: true },
+						},
+					},
+				},
+			},
+		});
+
+		if (!lesson) {
+			return {
+				status: "error",
+				message: "Lesson not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only delete lessons from their own courses, ADMIN can delete any
+		if (user.role !== "ADMIN" && lesson.chapter.course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only delete lessons from courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && lesson.chapter.course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
+			};
+		}
+
 		const chapterWithLessons = await prisma.chapter.findUnique({
 			where: {
 				id: chapterId,
@@ -355,6 +580,17 @@ export async function deleteLesson({
 				},
 			}),
 		]);
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "DELETE_LESSON",
+				entity: "Lesson",
+				details: `Deleted lesson "${lesson.title}" from chapter "${lesson.chapter.title}" of course "${lesson.chapter.course.title}"`,
+				userId: user.id,
+			},
+		});
+
 		revalidatePath(`/admin/courses/${courseId}/edit`);
 
 		return {
@@ -376,8 +612,41 @@ export async function deleteChapter({
 	chapterId: string;
 	courseId: string;
 }): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
+		// Fetch chapter with course to check ownership
+		const chapter = await prisma.chapter.findUnique({
+			where: { id: chapterId },
+			include: {
+				course: {
+					select: { userId: true, division: true, title: true },
+				},
+			},
+		});
+
+		if (!chapter) {
+			return {
+				status: "error",
+				message: "Chapter not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only delete chapters from their own courses, ADMIN can delete any
+		if (user.role !== "ADMIN" && chapter.course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only delete chapters from courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && chapter.course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
+			};
+		}
+
 		const courseWithChapters = await prisma.course.findUnique({
 			where: {
 				id: courseId,
@@ -434,6 +703,17 @@ export async function deleteChapter({
 				},
 			}),
 		]);
+
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "DELETE_CHAPTER",
+				entity: "Chapter",
+				details: `Deleted chapter "${chapter.title}" from course "${chapter.course.title}"`,
+				userId: user.id,
+			},
+		});
+
 		revalidatePath(`/admin/courses/${courseId}/edit`);
 
 		return {
