@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { TableControls } from "./TableControls";
 
 // shadcn Select
 import { Select, SelectTrigger, SelectContent, SelectItem } from "../ui/select";
@@ -394,6 +395,11 @@ export function CourseMenubar({ editor, defaults }: iAppProps) {
 				</div>
 
 				<div className="w-px h-6 bg-border mx-2" />
+
+				{/* --- Table Controls Group --- */}
+				<TableControls editor={editor} />
+
+				<div className="w-px h-6 bg-border mx-2 hidden sm:block" />
 
 				<div className="flex flex-wrap gap-1">
 					<Tooltip>

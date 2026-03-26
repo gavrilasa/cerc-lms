@@ -11,6 +11,10 @@ import {
 	FontSize,
 	FontFamily,
 } from "@tiptap/extension-text-style";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import Compressor from "compressorjs";
 import { toast } from "sonner";
 import { env } from "@/lib/env"; // Pastikan import env untuk construct URL
@@ -109,6 +113,12 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 					class: "w-full aspect-video rounded-lg shadow-sm border",
 				},
 			}),
+			Table.configure({
+				resizable: true,
+			}),
+			TableRow,
+			TableCell,
+			TableHeader,
 		],
 
 		editorProps: {

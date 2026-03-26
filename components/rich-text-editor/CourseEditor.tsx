@@ -9,6 +9,10 @@ import {
 	FontSize,
 	FontFamily,
 } from "@tiptap/extension-text-style";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 
 import { CourseMenubar } from "./CourseMenubar";
 
@@ -26,6 +30,12 @@ export function CourseRichTextEditor({ field }: { field: any }) {
 			FontSize.configure({ types: ["textStyle"] }),
 			FontFamily.configure({ types: ["textStyle"] }),
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
+			Table.configure({
+				resizable: true,
+			}),
+			TableRow,
+			TableCell,
+			TableHeader,
 		],
 
 		editorProps: {

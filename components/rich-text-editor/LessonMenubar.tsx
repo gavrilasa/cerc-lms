@@ -43,6 +43,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useRef, useState } from "react";
+import { TableControls } from "./TableControls";
 
 interface iAppProps {
 	editor: Editor | null;
@@ -512,6 +513,11 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 				</div>
 
 				<div className="w-px h-6 bg-border mx-2" />
+
+				{/* --- Table Controls Group --- */}
+				<TableControls editor={editor} />
+
+				<div className="w-px h-6 bg-border mx-2 hidden sm:block" />
 
 				{/* --- Undo/Redo Group --- */}
 				<div className="flex flex-wrap gap-1">
