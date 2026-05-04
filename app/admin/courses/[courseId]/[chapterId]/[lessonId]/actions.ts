@@ -4,12 +4,13 @@ import { requireSession } from "@/app/data/auth/require-session";
 import prisma from "@/lib/db";
 import { ApiResponse } from "@/lib/types";
 import { lessonSchema, LessonSchemaType } from "@/lib/zodSchemas";
+import { revalidatePath } from "next/cache";
 
 export async function updateLesson(
 	values: LessonSchemaType,
 	lessonId: string
 ): Promise<ApiResponse> {
-	await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		const result = lessonSchema.safeParse(values);
@@ -18,6 +19,35 @@ export async function updateLesson(
 			return {
 				status: "error",
 				message: "Invalid data",
+			};
+		}
+
+		// Fetch lesson with chapter and course to check ownership
+		const lesson = await prisma.lesson.findUnique({
+			where: { id: lessonId },
+			include: {
+				chapter: {
+					include: {
+						course: {
+							select: { userId: true, division: true, title: true },
+						},
+					},
+				},
+			},
+		});
+
+		if (!lesson) {
+			return {
+				status: "error",
+				message: "Lesson not found",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && lesson.chapter.course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
 			};
 		}
 
@@ -31,14 +61,26 @@ export async function updateLesson(
 			},
 		});
 
+		// Log the action
+		await prisma.adminLog.create({
+			data: {
+				action: "UPDATE_LESSON",
+				entity: "Lesson",
+				details: `Updated lesson "${result.data.title}" in chapter "${lesson.chapter.title}" of course "${lesson.chapter.course.title}"`,
+				userId: user.id,
+			},
+		});
+
+		revalidatePath(`/admin/courses/${result.data.courseId}/edit`);
+
 		return {
 			status: "success",
-			message: "Course updated successfully",
+			message: "Lesson updated successfully",
 		};
 	} catch {
 		return {
 			status: "error",
-			message: "Failed to update course",
+			message: "Failed to update lesson",
 		};
 	}
 }

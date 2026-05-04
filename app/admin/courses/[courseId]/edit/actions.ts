@@ -72,14 +72,6 @@ export async function editCourse(
 			};
 		}
 
-		// Check ownership: MENTOR can only edit their own courses, ADMIN can edit any
-		if (user.role !== "ADMIN" && course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only edit courses you created",
-			};
-		}
-
 		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
@@ -153,14 +145,6 @@ export async function reorderLessons(
 			return {
 				status: "error",
 				message: "Course not found",
-			};
-		}
-
-		// Check ownership: MENTOR can only reorder their own courses, ADMIN can reorder any
-		if (user.role !== "ADMIN" && course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only reorder lessons in courses you created",
 			};
 		}
 
@@ -240,14 +224,6 @@ export async function reorderChapters(
 			};
 		}
 
-		// Check ownership: MENTOR can only reorder their own courses, ADMIN can reorder any
-		if (user.role !== "ADMIN" && course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only reorder chapters in courses you created",
-			};
-		}
-
 		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
@@ -318,14 +294,6 @@ export async function createChapter(
 			return {
 				status: "error",
 				message: "Course not found",
-			};
-		}
-
-		// Check ownership: MENTOR can only add chapters to their own courses, ADMIN can add to any
-		if (user.role !== "ADMIN" && course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only add chapters to courses you created",
 			};
 		}
 
@@ -415,14 +383,6 @@ export async function createLesson(
 			};
 		}
 
-		// Check ownership: MENTOR can only add lessons to their own courses, ADMIN can add to any
-		if (user.role !== "ADMIN" && chapter.course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only add lessons to courses you created",
-			};
-		}
-
 		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && chapter.course.division !== user.division) {
 			return {
@@ -508,14 +468,6 @@ export async function deleteLesson({
 			return {
 				status: "error",
 				message: "Lesson not found",
-			};
-		}
-
-		// Check ownership: MENTOR can only delete lessons from their own courses, ADMIN can delete any
-		if (user.role !== "ADMIN" && lesson.chapter.course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only delete lessons from courses you created",
 			};
 		}
 
@@ -628,14 +580,6 @@ export async function deleteChapter({
 			return {
 				status: "error",
 				message: "Chapter not found",
-			};
-		}
-
-		// Check ownership: MENTOR can only delete chapters from their own courses, ADMIN can delete any
-		if (user.role !== "ADMIN" && chapter.course.userId !== user.id) {
-			return {
-				status: "error",
-				message: "Unauthorized: You can only delete chapters from courses you created",
 			};
 		}
 

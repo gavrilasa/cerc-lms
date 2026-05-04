@@ -16,12 +16,12 @@ const aj = arcjet.withRule(
 );
 
 export async function deleteCourse(courseId: string): Promise<ApiResponse> {
-	const session = await requireSession({ minRole: "ADMIN" });
+	const { user } = await requireSession({ minRole: "MENTOR" });
 
 	try {
 		const req = await request();
 		const decision = await aj.protect(req, {
-			fingerprint: session.user.id,
+			fingerprint: user.id,
 		});
 
 		if (decision.isDenied()) {
@@ -38,11 +38,34 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			}
 		}
 
-		// Fetch course title first
+		// Fetch course to check ownership and division
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
-			select: { title: true },
+			select: { title: true, userId: true, division: true },
 		});
+
+		if (!course) {
+			return {
+				status: "error",
+				message: "Course not found",
+			};
+		}
+
+		// Check ownership: MENTOR can only delete their own courses, ADMIN can delete any
+		if (user.role !== "ADMIN" && course.userId !== user.id) {
+			return {
+				status: "error",
+				message: "Unauthorized: You can only delete courses you created",
+			};
+		}
+
+		// Check division access for MENTOR
+		if (user.role !== "ADMIN" && course.division !== user.division) {
+			return {
+				status: "error",
+				message: "Unauthorized: Different division",
+			};
+		}
 
 		await prisma.course.delete({
 			where: {
@@ -50,13 +73,13 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			},
 		});
 
-		// [NEW] Log the action
+		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "DELETE_COURSE",
 				entity: "Course",
-				details: `Deleted course ${course?.title || courseId}`,
-				userId: session.user.id,
+				details: `Deleted course: ${course.title}`,
+				userId: user.id,
 			},
 		});
 
