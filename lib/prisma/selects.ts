@@ -54,6 +54,9 @@ export const chapterWithDetailedLessonsSelect = {
 	position: true,
 	lessons: {
 		select: lessonWithDescriptionSelect,
+		orderBy: {
+			position: "asc" as const,
+		},
 	},
 } as const satisfies Prisma.ChapterSelect;
 
@@ -96,6 +99,9 @@ export const courseWithDetailedChaptersSelect = {
 	...courseBaseSelect,
 	chapters: {
 		select: chapterWithDetailedLessonsSelect,
+		orderBy: {
+			position: "asc" as const,
+		},
 	},
 } as const satisfies Prisma.CourseSelect;
 

@@ -7,7 +7,7 @@ import {
 	DraggableSyntheticListeners,
 	KeyboardSensor,
 	PointerSensor,
-	rectIntersection,
+	closestCenter,
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
@@ -160,7 +160,7 @@ export function CourseStructure({ data }: iAppProps) {
 				(chapter, index) => ({
 					...chapter,
 					order: index + 1,
-				})
+				}),
 			);
 
 			const previousItems = [...items];
@@ -197,13 +197,13 @@ export function CourseStructure({ data }: iAppProps) {
 
 			if (!chapterId || chapterId !== overChapterId) {
 				toast.error(
-					"Lesson move between different chapters or invalid chapter ID is not allowed."
+					"Lesson move between different chapters or invalid chapter ID is not allowed.",
 				);
 				return;
 			}
 
 			const chapterIndex = items.findIndex(
-				(chapter) => chapter.id === chapterId
+				(chapter) => chapter.id === chapterId,
 			);
 
 			if (chapterIndex === -1) {
@@ -214,10 +214,10 @@ export function CourseStructure({ data }: iAppProps) {
 			const chapterToUpdate = items[chapterIndex];
 
 			const oldLessonIndex = chapterToUpdate.lessons.findIndex(
-				(lesson) => lesson.id === active.id
+				(lesson) => lesson.id === active.id,
 			);
 			const newLessonIndex = chapterToUpdate.lessons.findIndex(
-				(lesson) => lesson.id === overId
+				(lesson) => lesson.id === overId,
 			);
 
 			if (oldLessonIndex === -1 || newLessonIndex === -1) {
@@ -228,7 +228,7 @@ export function CourseStructure({ data }: iAppProps) {
 			const reordedLessons = arrayMove(
 				chapterToUpdate.lessons,
 				oldLessonIndex,
-				newLessonIndex
+				newLessonIndex,
 			);
 
 			const updatedLessonForState = reordedLessons.map((lesson, index) => ({
@@ -271,6 +271,89 @@ export function CourseStructure({ data }: iAppProps) {
 
 			return;
 		}
+
+		// Handle lesson dropped on a chapter header (insert at end of chapter)
+		if (activeType === "lesson" && overType === "chapter") {
+			const chapterId = active.data.current?.chapterId;
+			const targetChapterId = overId as string;
+
+			if (!chapterId || chapterId !== targetChapterId) {
+				toast.error(
+					"Lesson move between different chapters or invalid chapter ID is not allowed.",
+				);
+				return;
+			}
+
+			const chapterIndex = items.findIndex(
+				(chapter) => chapter.id === chapterId,
+			);
+
+			if (chapterIndex === -1) {
+				toast.error("Could not find chapter for lesson");
+				return;
+			}
+
+			const chapterToUpdate = items[chapterIndex];
+			const oldLessonIndex = chapterToUpdate.lessons.findIndex(
+				(lesson) => lesson.id === active.id,
+			);
+
+			if (oldLessonIndex === -1) {
+				toast.error("Could not find lesson for reordering");
+				return;
+			}
+
+			// Move to end of chapter
+			const newLessonIndex = chapterToUpdate.lessons.length - 1;
+
+			if (oldLessonIndex === newLessonIndex) {
+				return; // Already at the end
+			}
+
+			const reordedLessons = arrayMove(
+				chapterToUpdate.lessons,
+				oldLessonIndex,
+				newLessonIndex,
+			);
+
+			const updatedLessonForState = reordedLessons.map((lesson, index) => ({
+				...lesson,
+				order: index + 1,
+			}));
+
+			const newItems = [...items];
+			newItems[chapterIndex] = {
+				...chapterToUpdate,
+				lessons: updatedLessonForState,
+			};
+
+			const previousItems = [...items];
+			setItems(newItems);
+
+			if (courseId) {
+				const lessonsToUpdate = updatedLessonForState.map((lesson) => ({
+					id: lesson.id,
+					position: lesson.order,
+				}));
+
+				const reorderLessonsPromise = () =>
+					reorderLessons(chapterId, lessonsToUpdate, courseId);
+
+				toast.promise(reorderLessonsPromise(), {
+					loading: "Reordering Lessons...",
+					success: (result) => {
+						if (result.status === "success") return result.message;
+						throw new Error(result.message);
+					},
+					error: () => {
+						setItems(previousItems);
+						return "Failed to Reorder Lesson";
+					},
+				});
+			}
+
+			return;
+		}
 	}
 
 	function toggleChapter(chapterId: string) {
@@ -278,8 +361,8 @@ export function CourseStructure({ data }: iAppProps) {
 			items.map((chapter) =>
 				chapter.id === chapterId
 					? { ...chapter, isOpen: !chapter.isOpen }
-					: chapter
-			)
+					: chapter,
+			),
 		);
 	}
 
@@ -287,12 +370,12 @@ export function CourseStructure({ data }: iAppProps) {
 		useSensor(PointerSensor),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
-		})
+		}),
 	);
 
 	return (
 		<DndContext
-			collisionDetection={rectIntersection}
+			collisionDetection={closestCenter}
 			onDragEnd={handleDragEnd}
 			sensors={sensors}
 		>
@@ -343,7 +426,7 @@ export function CourseStructure({ data }: iAppProps) {
 											</div>
 
 											<CollapsibleContent>
-												<div className="p-1">
+												<div className="p-2 space-y-2">
 													<SortableContext
 														items={item.lessons.map((lesson) => lesson.id)}
 														strategy={verticalListSortingStrategy}
