@@ -85,7 +85,7 @@ export function CourseMenubar({ editor, defaults }: iAppProps) {
 		"focus:bg-accent focus:text-accent-foreground";
 
 	return (
-		<div className="border border-input border-t-0 border-x-0 rounded-t-lg p-2 bg-card flex flex-wrap gap-2 items-center">
+		<div className="border border-input border-t-0 border-x-0 rounded-t-lg p-2 bg-card flex flex-wrap gap-2 items-center sticky top-0 z-40">
 			<TooltipProvider>
 				<div className="flex flex-wrap gap-1">
 					<Tooltip>
