@@ -12,18 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function CurriculumPage() {
-	// 1. Auth & Validation
 	const { user } = await requireSession();
 
-	// Jika user belum memilih kurikulum, redirect ke halaman seleksi
 	if (!user.selectedCurriculumId) {
 		redirect("/select-curriculum");
 	}
 
-	// 2. Data Loading
 	const timelineItems = await getCurriculumTimeline();
 
-	// Edge Case: Data kosong (misal kurikulum belum disetup admin)
 	if (timelineItems.length === 0) {
 		return (
 			<div className="flex h-[calc(100vh-200px)] items-center justify-center p-8">
@@ -37,7 +33,6 @@ export default async function CurriculumPage() {
 		);
 	}
 
-	// 3. Rendering
 	return (
 		<div className="flex flex-col space-y-4 p-4">
 			<div className="flex flex-col gap-1">

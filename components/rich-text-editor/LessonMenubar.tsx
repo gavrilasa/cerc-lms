@@ -47,7 +47,7 @@ import { TableControls } from "./TableControls";
 
 interface iAppProps {
 	editor: Editor | null;
-	uploadImage: (file: File) => Promise<string>;
+	uploadImage?: (file: File) => Promise<string>;
 	defaults?: {
 		fontFamily: string;
 		fontSize: string;
@@ -81,7 +81,6 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 	const currentLineHeight =
 		(attrs.lineHeight as string) || defaults?.lineHeight || "1.5";
 
-	// --- Logic Video (Dialog) ---
 	const handleAddVideo = () => {
 		if (videoUrl) {
 			editor.commands.setYoutubeVideo({
@@ -92,9 +91,7 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 		}
 	};
 
-	// --- Logic Image (File Upload) ---
 	const handleImageClick = () => {
-		// Trigger klik pada input file tersembunyi
 		fileInputRef.current?.click();
 	};
 
@@ -102,14 +99,13 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 		event: React.ChangeEvent<HTMLInputElement>
 	) => {
 		const file = event.target.files?.[0];
-		if (file) {
+		if (file && uploadImage) {
 			try {
-				const url = await uploadImage(file); // Gunakan fungsi dari props
+				const url = await uploadImage(file);
 				editor.chain().focus().setImage({ src: url }).run();
 			} catch (error) {
 				console.error("Failed to upload image from toolbar", error);
 			} finally {
-				// Reset input value agar user bisa upload file yang sama berturut-turut jika mau
 				if (fileInputRef.current) {
 					fileInputRef.current.value = "";
 				}
@@ -134,9 +130,8 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 		"focus:bg-accent focus:text-accent-foreground";
 
 	return (
-		<div className="border border-input border-t-0 border-x-0 rounded-t-lg p-2 bg-card flex flex-wrap gap-2 items-center sticky top-0 z-40">
+		<div className="border border-input rounded-t-lg p-2 bg-card flex flex-wrap gap-2 items-center sticky top-0 z-40">
 			<TooltipProvider>
-				{/* --- Text Formatting Group --- */}
 				<div className="flex flex-wrap gap-1">
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -290,9 +285,7 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 
 				<div className="w-px h-6 bg-border mx-2" />
 
-				{/* --- Media & Alignment Group --- */}
 				<div className="flex flex-wrap gap-1">
-					{/* VIDEO DIALOG */}
 					<Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
 						<DialogTrigger asChild>
 							<Button
@@ -332,33 +325,35 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 						</DialogContent>
 					</Dialog>
 
-					{/* IMAGE UPLOAD (DIRECT) */}
-					<input
-						type="file"
-						ref={fileInputRef}
-						className="hidden"
-						accept="image/*"
-						onChange={handleFileChange}
-					/>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={handleImageClick}
-								className={cn(
-									editor.isActive("image") && "bg-muted text-muted-foreground"
-								)}
-							>
-								<ImageIcon className="size-4" />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Upload Image</TooltipContent>
-					</Tooltip>
+					{uploadImage && (
+						<>
+							<input
+								type="file"
+								ref={fileInputRef}
+								className="hidden"
+								accept="image/*"
+								onChange={handleFileChange}
+							/>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={handleImageClick}
+										className={cn(
+											editor.isActive("image") && "bg-muted text-muted-foreground"
+										)}
+									>
+										<ImageIcon className="size-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Upload Image</TooltipContent>
+							</Tooltip>
+						</>
+					)}
 
 					<div className="w-px h-6 bg-border mx-2" />
 
-					{/* Alignment */}
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<Toggle
@@ -419,9 +414,7 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 
 				<div className="w-px h-6 bg-border mx-2" />
 
-				{/* --- Font Settings Group --- */}
 				<div className="flex flex-wrap gap-1">
-					{/* Font family */}
 					<Select
 						value={currentFontFamily}
 						onValueChange={(v) => editor.chain().focus().setFontFamily(v).run()}
@@ -450,8 +443,6 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 							))}
 						</SelectContent>
 					</Select>
-
-					{/* Font size */}
 					<Select
 						value={currentFontSize}
 						onValueChange={(v) => editor.chain().focus().setFontSize(v).run()}
@@ -480,8 +471,6 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 							))}
 						</SelectContent>
 					</Select>
-
-					{/* Line height */}
 					<Select
 						value={currentLineHeight}
 						onValueChange={(v) => editor.chain().focus().setLineHeight(v).run()}
@@ -514,12 +503,10 @@ export function LessonMenubar({ editor, defaults, uploadImage }: iAppProps) {
 
 				<div className="w-px h-6 bg-border mx-2" />
 
-				{/* --- Table Controls Group --- */}
 				<TableControls editor={editor} />
 
 				<div className="w-px h-6 bg-border mx-2 hidden sm:block" />
 
-				{/* --- Undo/Redo Group --- */}
 				<div className="flex flex-wrap gap-1">
 					<Tooltip>
 						<TooltipTrigger asChild>

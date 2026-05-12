@@ -13,10 +13,6 @@ import {
 import { z } from "zod";
 import { type AuthUser, checkRole } from "@/lib/access-control";
 
-// =============================================================================
-// Zod Schemas
-// =============================================================================
-
 const linkSchema = z.object({
 	label: z.string().min(1, "Label is required").max(100),
 	url: z.string().url("Invalid URL format"),
@@ -36,10 +32,6 @@ const gradeSubmissionSchema = z.object({
 	feedback: z.string().min(1, "Feedback is required").max(2000),
 });
 
-// =============================================================================
-// Types
-// =============================================================================
-
 interface ActionResult {
 	success?: boolean;
 	error?: string;
@@ -49,10 +41,6 @@ interface ActionResult {
 export type SubmissionWithDetails = Awaited<
 	ReturnType<typeof getUserSubmissions>
 >["submissions"][number];
-
-// =============================================================================
-// User Actions
-// =============================================================================
 
 /**
  * Create a new submission
@@ -65,7 +53,6 @@ export async function createSubmission(
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Validate input
 	const validation = createSubmissionSchema.safeParse(input);
 	if (!validation.success) {
 		return { error: validation.error.issues[0]?.message || "Invalid input" };
@@ -73,19 +60,16 @@ export async function createSubmission(
 
 	const { title, description, type, courseId, links } = validation.data;
 
-	// User must have a division
 	if (!user.division) {
 		return { error: "Your account is not registered in any division." };
 	}
 
 	try {
-		// TASK type requires courseId and enrollment check
 		if (type === SubmissionType.TASK) {
 			if (!courseId) {
 				return { error: "Course must be selected for TASK type submission." };
 			}
 
-			// Check if user is enrolled in the course
 			const enrollment = await prisma.enrollment.findUnique({
 				where: {
 					userId_courseId: {
@@ -102,7 +86,6 @@ export async function createSubmission(
 			}
 		}
 
-		// Create submission with links
 		await prisma.submission.create({
 			data: {
 				title,
@@ -203,10 +186,6 @@ export async function getEnrolledCourses() {
 	return enrollments.map((e) => e.course);
 }
 
-// =============================================================================
-// Mentor/Admin Actions
-// =============================================================================
-
 /**
  * Get all submissions for review page
  * - Mentors see submissions from their division only
@@ -216,13 +195,12 @@ export async function getEnrolledCourses() {
 export async function getAllSubmissionsForReview(
 	page: number = 1,
 	limit: number = 10,
-	status: string = "ALL", // ALL, PENDING, REVIEWED
-	sort: "asc" | "desc" = "desc" // desc = Newest, asc = Oldest
+	status: string = "ALL",
+	sort: "asc" | "desc" = "desc"
 ) {
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
 		return {
 			submissions: [],
@@ -238,7 +216,6 @@ export async function getAllSubmissionsForReview(
 	const whereClause: Prisma.SubmissionWhereInput =
 		user.role === "ADMIN" ? {} : { division: user.division! };
 
-	// Apply status filter
 	if (status !== "ALL") {
 		if (status === "PENDING") {
 			whereClause.status = SubmissionStatus.PENDING;
@@ -309,12 +286,10 @@ export async function gradeSubmission(
 	const session = await requireSession();
 	const user = session.user as AuthUser;
 
-	// Must be at least MENTOR
 	if (!checkRole(user, "MENTOR")) {
 		return { error: "You do not have permission to perform reviews." };
 	}
 
-	// Validate input
 	const validation = gradeSubmissionSchema.safeParse(input);
 	if (!validation.success) {
 		return { error: validation.error.issues[0]?.message || "Invalid input" };
@@ -323,7 +298,6 @@ export async function gradeSubmission(
 	const { submissionId, score, feedback } = validation.data;
 
 	try {
-		// Get submission
 		const submission = await prisma.submission.findUnique({
 			where: { id: submissionId },
 			select: {
@@ -440,7 +414,6 @@ export async function getSubmissionDetail(submissionId: string) {
 		return null;
 	}
 
-	// Access check: owner or MENTOR/ADMIN
 	const isOwner = submission.userId === user.id;
 	const isReviewer = checkRole(user, "MENTOR");
 

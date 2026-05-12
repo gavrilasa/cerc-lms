@@ -131,7 +131,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const { data: session } = authClient.useSession();
 	const isMember = session?.user?.role === "MEMBER";
 
-	// Filter nav items based on user role
 	const filteredNavMain = data.navMain.filter((item) => {
 		if ("memberOnly" in item && item.memberOnly) {
 			return isMember;

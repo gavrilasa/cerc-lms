@@ -56,7 +56,6 @@ export function TableControls({ editor }: TableControlsProps) {
   return (
     <TooltipProvider>
       <div className="flex items-center gap-1">
-        {/* Insert Table Dropdown */}
         <DropdownMenu open={isInsertOpen} onOpenChange={setIsInsertOpen}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -116,12 +115,10 @@ export function TableControls({ editor }: TableControlsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Table Operations - Only visible when in table and on larger screens */}
         {isInTable && (
           <>
             <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
-            {/* Row Operations */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -152,7 +149,6 @@ export function TableControls({ editor }: TableControlsProps) {
               <TooltipContent>Add Row After</TooltipContent>
             </Tooltip>
 
-            {/* Column Operations */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -183,7 +179,6 @@ export function TableControls({ editor }: TableControlsProps) {
               <TooltipContent>Add Column After</TooltipContent>
             </Tooltip>
 
-            {/* Delete Operations */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -214,7 +209,6 @@ export function TableControls({ editor }: TableControlsProps) {
               <TooltipContent>Delete Column</TooltipContent>
             </Tooltip>
 
-            {/* Merge/Split */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -245,7 +239,6 @@ export function TableControls({ editor }: TableControlsProps) {
               <TooltipContent>Split Cell</TooltipContent>
             </Tooltip>
 
-            {/* Header Operations */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -264,7 +257,6 @@ export function TableControls({ editor }: TableControlsProps) {
               <TooltipContent>Toggle Header Row</TooltipContent>
             </Tooltip>
 
-            {/* Delete Table */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

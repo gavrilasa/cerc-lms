@@ -27,17 +27,14 @@ export function LessonMainWrapper({
 		<div
 			className={cn(
 				"mx-auto transition-all duration-300 ease-in-out p-6 md:p-8",
-				// Logic Dynamic Class
 				isZenMode ? "max-w-5xl" : "max-w-3xl"
 			)}
 		>
-			{/* Header Lesson */}
 			<div className="flex items-start justify-between gap-4 mb-8 border-b pb-4">
 				<h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
 					{lessonTitle}
 				</h1>
 
-				{/* Tombol Toggle Zen Mode */}
 				<Button
 					variant="ghost"
 					size="icon"

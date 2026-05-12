@@ -68,13 +68,10 @@ export function CourseMenubar({ editor, defaults }: iAppProps) {
 		"inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors " +
 		"disabled:pointer-events-none disabled:opacity-50 " +
 		"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
-		// identical base + hover + active tokens as Toggle
 		"text-muted-foreground !bg-transparent !border-0 !shadow-none " +
 		"hover:bg-accent hover:text-accent-foreground " +
 		"data-[state=open]:bg-accent data-[state=open]:text-accent-foreground " +
-		// equalize color transition timing
 		"duration-150 ease-in-out " +
-		// nuke built-in chevron in every variant
 		"[&>svg:last-child]:hidden [&_[data-slot=icon]]:hidden";
 
 	const selectContentCls =

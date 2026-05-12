@@ -10,8 +10,6 @@ type Params = Promise<{
 export default async function LessonPage({ params }: { params: Params }) {
 	const { lessonId, slug } = await params;
 
-	// 1. Fetch Lesson Data
-	// Kita perlu include Chapter -> Course untuk validasi dan data context
 	const lesson = await prisma.lesson.findUnique({
 		where: {
 			id: lessonId,
@@ -35,19 +33,16 @@ export default async function LessonPage({ params }: { params: Params }) {
 		},
 	});
 
-	// 2. Validasi
 	if (!lesson) {
 		return redirect("/dashboard");
 	}
 
-	// Validasi Slug URL matches Lesson Data (Security/Consistency check)
 	if (lesson.chapter.course.slug !== slug) {
 		return redirect(
 			`/dashboard/courses/${lesson.chapter.course.slug}/learn/${lessonId}`
 		);
 	}
 
-	// 3. Render Client Wrapper
 	return (
 		<LessonMainWrapper
 			lessonId={lesson.id}

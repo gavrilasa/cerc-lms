@@ -59,7 +59,6 @@ export async function editCourse(
 			};
 		}
 
-		// Fetch course to check ownership and division
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { userId: true, division: true, title: true },
@@ -72,7 +71,6 @@ export async function editCourse(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
 				status: "error",
@@ -94,7 +92,6 @@ export async function editCourse(
 			},
 		});
 
-		// [NEW] Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "UPDATE_COURSE",
@@ -135,7 +132,6 @@ export async function reorderLessons(
 			};
 		}
 
-		// Fetch course to check division and ownership
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { userId: true, division: true, title: true },
@@ -148,7 +144,6 @@ export async function reorderLessons(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
 				status: "error",
@@ -170,7 +165,6 @@ export async function reorderLessons(
 
 		await prisma.$transaction(updates);
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "REORDER_LESSONS",
@@ -211,7 +205,6 @@ export async function reorderChapters(
 			};
 		}
 
-		// Fetch course to check division and ownership
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { userId: true, division: true, title: true },
@@ -224,7 +217,6 @@ export async function reorderChapters(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
 				status: "error",
@@ -246,7 +238,6 @@ export async function reorderChapters(
 
 		await prisma.$transaction(updates);
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "REORDER_CHAPTERS",
@@ -284,7 +275,6 @@ export async function createChapter(
 			};
 		}
 
-		// Fetch course to check division and ownership
 		const course = await prisma.course.findUnique({
 			where: { id: result.data.courseId },
 			select: { userId: true, division: true, title: true },
@@ -297,7 +287,6 @@ export async function createChapter(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
 				status: "error",
@@ -327,7 +316,6 @@ export async function createChapter(
 			});
 		});
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "CREATE_CHAPTER",
@@ -352,7 +340,6 @@ export async function createChapter(
 }
 
 export async function createLesson(
-	// PERBAIKAN: Menggunakan LessonSchemaType, bukan ChapterSchemaType
 	values: LessonSchemaType
 ): Promise<ApiResponse> {
 	const { user } = await requireSession({ minRole: "MENTOR" });
@@ -366,7 +353,6 @@ export async function createLesson(
 			};
 		}
 
-		// Fetch chapter with course to check division and ownership
 		const chapter = await prisma.chapter.findUnique({
 			where: { id: result.data.chapterId },
 			include: {
@@ -383,7 +369,6 @@ export async function createLesson(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && chapter.course.division !== user.division) {
 			return {
 				status: "error",
@@ -406,16 +391,14 @@ export async function createLesson(
 
 			return await tx.lesson.create({
 				data: {
-					title: result.data.title, // Menggunakan title
+					title: result.data.title,
 					description: result.data.description,
-					// Hapus videoKey dan thumbnailKey
 					chapterId: result.data.chapterId,
 					position: (maxPos?.position ?? 0) + 1,
 				},
 			});
 		});
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "CREATE_LESSON",
@@ -450,7 +433,6 @@ export async function deleteLesson({
 }): Promise<ApiResponse> {
 	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
-		// Fetch lesson with chapter and course to check ownership
 		const lesson = await prisma.lesson.findUnique({
 			where: { id: lessonId },
 			include: {
@@ -471,7 +453,6 @@ export async function deleteLesson({
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && lesson.chapter.course.division !== user.division) {
 			return {
 				status: "error",
@@ -533,7 +514,6 @@ export async function deleteLesson({
 			}),
 		]);
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "DELETE_LESSON",
@@ -566,7 +546,6 @@ export async function deleteChapter({
 }): Promise<ApiResponse> {
 	const { user } = await requireSession({ minRole: "MENTOR" });
 	try {
-		// Fetch chapter with course to check ownership
 		const chapter = await prisma.chapter.findUnique({
 			where: { id: chapterId },
 			include: {
@@ -583,7 +562,6 @@ export async function deleteChapter({
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && chapter.course.division !== user.division) {
 			return {
 				status: "error",
@@ -648,7 +626,6 @@ export async function deleteChapter({
 			}),
 		]);
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "DELETE_CHAPTER",

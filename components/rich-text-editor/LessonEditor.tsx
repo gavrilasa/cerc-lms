@@ -1,6 +1,6 @@
 "use client";
 
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Image from "@tiptap/extension-image";
@@ -17,17 +17,42 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import Compressor from "compressorjs";
 import { toast } from "sonner";
-import { env } from "@/lib/env"; // Pastikan import env untuk construct URL
-
-import { LessonMenubar } from "./LessonMenubar";
+import { env } from "@/lib/env";
 
 const DEFAULT_FONT_FAMILY = "Inter";
 const DEFAULT_FONT_SIZE = "16px";
 const DEFAULT_LINE_HEIGHT = "1.5";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function LessonRichTextEditor({ field }: { field: any }) {
-	// Fungsi helper untuk upload gambar dengan Presigned URL Flow
+export const EDITOR_EXTENSIONS = [
+	StarterKit,
+	TextStyle,
+	LineHeight.configure({ types: ["textStyle"] }),
+	FontSize.configure({ types: ["textStyle"] }),
+	FontFamily.configure({ types: ["textStyle"] }),
+	TextAlign.configure({ types: ["heading", "paragraph", "image"] }),
+	Image.configure({
+		inline: true,
+		allowBase64: false,
+		HTMLAttributes: {
+			class: "rounded-lg border shadow-sm max-w-full h-auto my-4",
+		},
+	}),
+	Youtube.configure({
+		controls: false,
+		nocookie: true,
+		HTMLAttributes: {
+			class: "w-full aspect-video rounded-lg shadow-sm border",
+		},
+	}),
+	Table.configure({
+		resizable: true,
+	}),
+	TableRow,
+	TableCell,
+	TableHeader,
+];
+
+export function useLessonEditorConfig(field: { value?: string; onChange: (value: string) => void }) {
 	const uploadImage = async (file: File): Promise<string> => {
 		return new Promise((resolve, reject) => {
 			new Compressor(file, {
@@ -37,7 +62,6 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 					const fileToUpload = result as File;
 					const uploadToast = toast.loading("Uploading image...");
 
-					// STEP 1: Minta Presigned URL ke Server
 					fetch("/api/s3/upload", {
 						method: "POST",
 						headers: {
@@ -45,7 +69,7 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 						},
 						body: JSON.stringify({
 							fileName: file.name,
-							contentType: fileToUpload.type, // 'image/webp'
+							contentType: fileToUpload.type,
 							size: fileToUpload.size,
 							isImage: true,
 						}),
@@ -57,12 +81,11 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 						.then(async (data) => {
 							const { presignedUrl, key } = data;
 
-							// STEP 2: Upload File Fisik ke S3 menggunakan Presigned URL
 							const uploadRes = await fetch(presignedUrl, {
 								method: "PUT",
 								body: fileToUpload,
 								headers: {
-									"Content-Type": fileToUpload.type, // Penting: Harus sama dengan yang didaftarkan di Step 1
+									"Content-Type": fileToUpload.type,
 								},
 							});
 
@@ -70,8 +93,6 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 
 							toast.dismiss(uploadToast);
 
-							// STEP 3: Construct Public URL
-							// Menggunakan format URL yang sama dengan hooks/use-construct-url.ts
 							const publicUrl = `https://${env.NEXT_PUBLIC_S3_BUCKET_NAME_IMAGES}.t3.storage.dev/${key}`;
 
 							resolve(publicUrl);
@@ -92,34 +113,7 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 	};
 
 	const editor = useEditor({
-		extensions: [
-			StarterKit,
-			TextStyle,
-			LineHeight.configure({ types: ["textStyle"] }),
-			FontSize.configure({ types: ["textStyle"] }),
-			FontFamily.configure({ types: ["textStyle"] }),
-			TextAlign.configure({ types: ["heading", "paragraph", "image"] }),
-			Image.configure({
-				inline: true,
-				allowBase64: false,
-				HTMLAttributes: {
-					class: "rounded-lg border shadow-sm max-w-full h-auto my-4",
-				},
-			}),
-			Youtube.configure({
-				controls: false,
-				nocookie: true,
-				HTMLAttributes: {
-					class: "w-full aspect-video rounded-lg shadow-sm border",
-				},
-			}),
-			Table.configure({
-				resizable: true,
-			}),
-			TableRow,
-			TableCell,
-			TableHeader,
-		],
+		extensions: EDITOR_EXTENSIONS,
 
 		editorProps: {
 			attributes: {
@@ -192,17 +186,12 @@ export function LessonRichTextEditor({ field }: { field: any }) {
 		immediatelyRender: false,
 	});
 
+	return { editor, uploadImage, defaults: { fontFamily: DEFAULT_FONT_FAMILY, fontSize: DEFAULT_FONT_SIZE, lineHeight: DEFAULT_LINE_HEIGHT } };
+}
+
+export function LessonRichTextEditor({ editor }: { editor: Editor | null }) {
 	return (
 		<div className="w-full border border-input rounded-lg dark:bg-input/30 bg-background">
-			<LessonMenubar
-				editor={editor}
-				uploadImage={uploadImage}
-				defaults={{
-					fontFamily: DEFAULT_FONT_FAMILY,
-					fontSize: DEFAULT_FONT_SIZE,
-					lineHeight: DEFAULT_LINE_HEIGHT,
-				}}
-			/>
 			<EditorContent editor={editor} />
 		</div>
 	);

@@ -38,7 +38,6 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			}
 		}
 
-		// Fetch course to check ownership and division
 		const course = await prisma.course.findUnique({
 			where: { id: courseId },
 			select: { title: true, userId: true, division: true },
@@ -51,7 +50,6 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			};
 		}
 
-		// Check ownership: MENTOR can only delete their own courses, ADMIN can delete any
 		if (user.role !== "ADMIN" && course.userId !== user.id) {
 			return {
 				status: "error",
@@ -59,7 +57,6 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && course.division !== user.division) {
 			return {
 				status: "error",
@@ -73,7 +70,6 @@ export async function deleteCourse(courseId: string): Promise<ApiResponse> {
 			},
 		});
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "DELETE_COURSE",

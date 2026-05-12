@@ -20,14 +20,12 @@ const CurriculumTimeline = ({ items, className }: CurriculumTimelineProps) => {
 					<div className="absolute left-4 top-4 h-[calc(100%-2rem)] w-0.5 bg-muted md:left-6" />
 
 					{items.map((item, index) => {
-						// 1. Logika Status (Business Logic pada View Layer)
 						const isCompleted = !!item.completedAt;
 						const isLocked = index > 0 && !items[index - 1].completedAt;
 						const href = `/dashboard/courses/${item.slug}`;
 
 						return (
 							<div key={item.courseId} className="relative mb-8 pl-12 md:pl-16">
-								{/* 2. Timeline Dot (Conditional Rendering) */}
 								<div
 									className={cn(
 										"absolute left-0 top-6 flex h-8 w-8 -translate-x-0.5 items-center justify-center rounded-full border-4 border-background md:left-2",
@@ -43,7 +41,6 @@ const CurriculumTimeline = ({ items, className }: CurriculumTimelineProps) => {
 									#{item.order} Course
 								</h4>
 
-								{/* 3. Interactivity & Blocking */}
 								{isLocked ? (
 									<div className="pointer-events-none select-none opacity-60 grayscale filter">
 										<TimelineCard

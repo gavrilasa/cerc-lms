@@ -5,10 +5,6 @@ import { Prisma } from "@/lib/generated/prisma/client";
  * and consistent data shapes across the application.
  */
 
-// ============================================
-// LESSON SELECTS
-// ============================================
-
 /**
  * Basic lesson select - id, title, position
  */
@@ -25,10 +21,6 @@ export const lessonWithDescriptionSelect = {
 	...lessonBasicSelect,
 	description: true,
 } as const satisfies Prisma.LessonSelect;
-
-// ============================================
-// CHAPTER SELECTS
-// ============================================
 
 /**
  * Basic chapter select with lessons
@@ -59,10 +51,6 @@ export const chapterWithDetailedLessonsSelect = {
 		},
 	},
 } as const satisfies Prisma.ChapterSelect;
-
-// ============================================
-// COURSE SELECTS
-// ============================================
 
 /**
  * Core course fields - shared across most course queries

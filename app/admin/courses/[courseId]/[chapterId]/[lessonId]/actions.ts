@@ -22,7 +22,6 @@ export async function updateLesson(
 			};
 		}
 
-		// Fetch lesson with chapter and course to check ownership
 		const lesson = await prisma.lesson.findUnique({
 			where: { id: lessonId },
 			include: {
@@ -43,7 +42,6 @@ export async function updateLesson(
 			};
 		}
 
-		// Check division access for MENTOR
 		if (user.role !== "ADMIN" && lesson.chapter.course.division !== user.division) {
 			return {
 				status: "error",
@@ -61,7 +59,6 @@ export async function updateLesson(
 			},
 		});
 
-		// Log the action
 		await prisma.adminLog.create({
 			data: {
 				action: "UPDATE_LESSON",

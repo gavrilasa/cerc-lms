@@ -34,23 +34,18 @@ export default async function CourseDetailPage({
 
 	if (!course) return notFound();
 
-	// 1. Ambil User & Cek Enrollment
 	const { user } = await requireSession();
 	const enrollment = await checkUserEnrollment(user.id, course.id);
 
-	// 2. Hitung total lessons
 	const totalLessons = course.chapters.reduce(
 		(acc, chapter) => acc + chapter.lessons.length,
 		0,
 	);
 
-	// 3. Cari Lesson Selanjutnya untuk tombol "Lanjutkan Belajar"
-	// Jika user sudah enroll, cari lesson pertama yang belum selesai
 	let continueLessonId: string | undefined;
 	if (enrollment) {
 		continueLessonId = await getNextLesson(course.id, user.id);
 	} else {
-		// Fallback ke lesson pertama untuk preview
 		const firstChapter = course.chapters[0];
 		const firstLesson = firstChapter?.lessons[0];
 		continueLessonId = firstLesson?.id;

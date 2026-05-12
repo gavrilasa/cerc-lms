@@ -6,7 +6,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { EnrollmentStatus } from "@/lib/generated/prisma/enums";
 
-// Zod schema untuk validasi input
 const markAsCompletedInputSchema = z.object({
 	lessonId: z.string().uuid({ message: "Invalid Lesson ID" }),
 	courseId: z.string().uuid({ message: "Invalid Course ID" }),
@@ -19,18 +18,12 @@ interface MarkAsCompletedResult {
 	error?: string;
 }
 
-/**
- * Mark a lesson as completed dengan validasi:
- * - User harus aktif enrolled di course
- * - Lesson harus exist
- */
 export async function markAsCompleted(
 	lessonId: string,
 	courseId: string
 ): Promise<MarkAsCompletedResult> {
 	const { user } = await requireSession();
 
-	// 1. Input Validation
 	const validation = markAsCompletedInputSchema.safeParse({
 		lessonId,
 		courseId,
@@ -44,7 +37,6 @@ export async function markAsCompleted(
 		};
 	}
 
-	// 2. [NEW] Enrollment Check - user harus enrolled di course
 	const enrollment = await prisma.enrollment.findUnique({
 		where: {
 			userId_courseId: {
@@ -63,7 +55,6 @@ export async function markAsCompleted(
 		};
 	}
 
-	// 3. Get current lesson data
 	const currentLesson = await prisma.lesson.findUnique({
 		where: { id: lessonId },
 		select: {
@@ -92,7 +83,6 @@ export async function markAsCompleted(
 		};
 	}
 
-	// 4. Update Progress (Upsert for idempotency)
 	await prisma.lessonProgress.upsert({
 		where: {
 			userId_lessonId: {
@@ -110,10 +100,8 @@ export async function markAsCompleted(
 		},
 	});
 
-	// 5. Find Next Lesson
 	let nextLessonId: string | null = null;
 
-	// Cari lesson berikutnya di Chapter yang sama
 	const nextLessonInSameChapter = await prisma.lesson.findFirst({
 		where: {
 			chapterId: currentLesson.chapterId,
@@ -126,7 +114,6 @@ export async function markAsCompleted(
 	if (nextLessonInSameChapter) {
 		nextLessonId = nextLessonInSameChapter.id;
 	} else {
-		// Jika tidak ada, cari Chapter berikutnya dalam Course yang sama
 		const nextChapter = await prisma.chapter.findFirst({
 			where: {
 				courseId: courseId,
@@ -148,7 +135,6 @@ export async function markAsCompleted(
 		}
 	}
 
-	// 6. Check Course Completion
 	const totalLessonsCount = await prisma.lesson.count({
 		where: {
 			chapter: {
@@ -171,7 +157,6 @@ export async function markAsCompleted(
 
 	const isCourseCompleted = completedLessonsCount === totalLessonsCount;
 
-	// 7. Update enrollment if completed
 	if (isCourseCompleted) {
 		await prisma.enrollment.updateMany({
 			where: {
@@ -184,7 +169,6 @@ export async function markAsCompleted(
 		});
 	}
 
-	// 8. Revalidation
 	revalidatePath("/dashboard/courses");
 
 	return {

@@ -40,7 +40,6 @@ export function EnrollmentAction({
 		});
 	};
 
-	// KONDISI A: SUDAH ENROLL
 	if (isEnrolled) {
 		if (!continueLessonId) {
 			return (
@@ -62,7 +61,6 @@ export function EnrollmentAction({
 		);
 	}
 
-	// KONDISI B: BELUM ENROLL
 	return (
 		<Button
 			size="lg"

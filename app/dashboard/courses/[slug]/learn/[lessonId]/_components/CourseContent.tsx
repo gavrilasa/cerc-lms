@@ -32,13 +32,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface CourseContentProps {
 	lessonId: string;
 	courseId: string;
-	content: string; // JSON string dari database
+	content: string;
 	courseTitle: string;
 }
 
-/**
- * Empty content state component
- */
 function EmptyLessonContent() {
 	return (
 		<Alert variant="default" className="border-dashed">
@@ -52,22 +49,17 @@ function EmptyLessonContent() {
 	);
 }
 
-/**
- * Check if content is empty or invalid
- */
 function isContentEmpty(content: string): boolean {
 	if (!content || content.trim() === "") return true;
 
 	try {
 		const parsed = JSON.parse(content);
-		// Check if it's an empty TipTap document
 		if (
 			parsed.type === "doc" &&
 			(!parsed.content || parsed.content.length === 0)
 		) {
 			return true;
 		}
-		// Check if all content nodes are empty paragraphs
 		if (
 			parsed.content?.every(
 				(node: { type: string; content?: unknown[] }) =>
@@ -94,10 +86,8 @@ export function CourseContent({
 	const router = useRouter();
 	const { triggerConfetti } = useConfetti();
 
-	// Check if content is empty
 	const isEmpty = isContentEmpty(content);
 
-	// Inisialisasi Editor dalam mode Read-Only
 	const editor = useEditor({
 		editable: false,
 		immediatelyRender: false,

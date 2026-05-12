@@ -17,7 +17,6 @@ export default async function DashboardLayout({
 	const { user } = await requireSession();
 	const authUser = user as unknown as AuthUser;
 
-	// Redirect ADMIN and MENTOR to /admin - they should not access learner dashboard
 	if (checkRole(authUser, "MENTOR")) {
 		redirect("/admin");
 	}
