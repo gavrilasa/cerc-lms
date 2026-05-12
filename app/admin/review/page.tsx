@@ -1,8 +1,10 @@
 import { Metadata } from "next";
+import { Suspense } from "react";
 import { requireSession } from "@/app/data/auth/require-session";
 import { redirect } from "next/navigation";
 import { getAllSubmissionsForReview } from "@/app/dashboard/submission/actions";
 import { ReviewTable } from "./_components/ReviewTable";
+import { ReviewTableSkeleton } from "./_components/ReviewTableSkeleton";
 import { checkRole, type AuthUser } from "@/lib/access-control";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -52,7 +54,9 @@ export default async function ReviewPage(props: ReviewPageProps) {
 
 			<Card>
 				<CardContent>
-					<ReviewTable submissions={submissions} metadata={metadata} />
+					<Suspense fallback={<ReviewTableSkeleton />}>
+						<ReviewTable submissions={submissions} metadata={metadata} />
+					</Suspense>
 				</CardContent>
 			</Card>
 		</div>

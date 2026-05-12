@@ -11,21 +11,23 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pagination } from "@/components/general/Pagination";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { format } from "date-fns";
 import type { Prisma } from "@/lib/generated/prisma/client";
+import { UserAvatar } from "@/components/general/UserAvatar";
 
 type AdminLogWithUser = Prisma.AdminLogGetPayload<{
 	include: {
 		user: {
 			select: {
+				id: true;
 				name: true;
 				email: true;
 				image: true;
 				role: true;
+				division: true;
 			};
 		};
 	};
@@ -129,12 +131,17 @@ export default function LogsTable({ logs, metadata }: LogsTableProps) {
 								<TableRow key={log.id}>
 									<TableCell className="pl-4">
 										<div className="flex items-center gap-3 py-1">
-											<Avatar className="h-9 w-9">
-												<AvatarImage src={log.user.image || ""} />
-												<AvatarFallback>
-													{log.user.name.slice(0, 2).toUpperCase()}
-												</AvatarFallback>
-											</Avatar>
+											<UserAvatar
+												user={{
+													id: log.user.id,
+													name: log.user.name,
+													email: log.user.email,
+													image: log.user.image,
+													division: log.user.division,
+												}}
+												size={36}
+												className="h-9 w-9"
+											/>
 											<div className="flex flex-col">
 												<span className="font-medium text-sm">
 													{log.user.name}

@@ -35,10 +35,12 @@ export async function getLogs(
 			include: {
 				user: {
 					select: {
+						id: true,
 						name: true,
 						email: true,
 						image: true,
 						role: true,
+						division: true,
 					},
 				},
 			},

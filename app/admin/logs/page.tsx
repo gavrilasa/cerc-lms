@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getLogs } from "@/app/data/admin/logs/get-logs";
 import LogsTable from "./_components/LogsTable";
 import { Card, CardContent } from "@/components/ui/card";
+import { LogsTableSkeleton } from "./_components/LogsTableSkeleton";
 
 export const metadata = {
 	title: "Logs | Admin CERC",
@@ -33,7 +35,9 @@ export default async function AdminLogsPage(props: AdminLogsPageProps) {
 
 			<Card>
 				<CardContent className="p-0 sm:px-4 sm:py-2">
-					<LogsTable logs={logs} metadata={metadata} />
+					<Suspense fallback={<LogsTableSkeleton />}>
+						<LogsTable logs={logs} metadata={metadata} />
+					</Suspense>
 				</CardContent>
 			</Card>
 		</div>

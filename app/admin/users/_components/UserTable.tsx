@@ -18,13 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserActions } from "./UserActions";
 import type { Division, UserStatus, Role } from "@/lib/generated/prisma/enums";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
 import { authClient } from "@/lib/auth-client";
+import { UserAvatar } from "@/components/general/UserAvatar";
 
 import { Pagination } from "@/components/general/Pagination";
 
@@ -190,12 +190,17 @@ export default function UserTable({ users, metadata }: UserTableProps) {
 								<TableRow key={user.id}>
 									<TableCell className="pl-4">
 										<div className="flex items-center gap-3 py-1">
-											<Avatar className="h-9 w-9">
-												<AvatarImage src={user.image || ""} />
-												<AvatarFallback>
-													{user.name.slice(0, 2).toUpperCase()}
-												</AvatarFallback>
-											</Avatar>
+											<UserAvatar
+												user={{
+													id: user.id,
+													name: user.name,
+													email: user.email,
+													image: user.image,
+													division: user.division,
+												}}
+												size={36}
+												className="h-9 w-9"
+											/>
 											<div className="flex flex-col">
 												<span className="font-medium text-sm">{user.name}</span>
 												<span className="text-xs text-muted-foreground">

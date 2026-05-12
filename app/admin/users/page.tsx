@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { getUsers } from "@/app/data/admin/users/admin-get-users";
 import UserTable from "./_components/UserTable";
+import { UserTableSkeleton } from "./_components/UserTableSkeleton";
 import type { Division, UserStatus } from "@/lib/generated/prisma/enums";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -45,7 +47,9 @@ export default async function AdminUsersPage(props: AdminUsersPageProps) {
 
 			<Card>
 				<CardContent>
-					<UserTable users={users} metadata={metadata} />
+					<Suspense fallback={<UserTableSkeleton />}>
+						<UserTable users={users} metadata={metadata} />
+					</Suspense>
 				</CardContent>
 			</Card>
 		</div>

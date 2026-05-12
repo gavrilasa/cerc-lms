@@ -6,7 +6,6 @@ import {
 	IconLogout,
 } from "@tabler/icons-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -26,6 +25,7 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { HomeIcon, Tv2 } from "lucide-react";
 import { useSignOut } from "@/hooks/use-signout";
+import { UserAvatar } from "@/components/general/UserAvatar";
 
 export function NavUser() {
 	const { isMobile } = useSidebar();
@@ -36,6 +36,16 @@ export function NavUser() {
 		return null;
 	}
 
+	const user = session?.user
+		? {
+				id: session.user.id,
+				name: session.user.name || "",
+				email: session.user.email || "",
+				image: session.user.image,
+				division: (session.user as unknown as { division?: string | null }).division,
+			}
+		: null;
+
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -45,20 +55,13 @@ export function NavUser() {
 							size="lg"
 							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						>
-							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarImage
-									src={
-										session?.user.image ??
-										`https://avatar.vercel.sh/${session?.user.name}`
-									}
-									alt={session?.user.name}
+							{user && (
+								<UserAvatar
+									user={user}
+									size={32}
+									className="rounded-lg"
 								/>
-								<AvatarFallback className="rounded-lg">
-									{session?.user.name && session.user.name.length > 0
-										? session.user.name.charAt(0).toUpperCase()
-										: session?.user.email.charAt(0).toUpperCase()}
-								</AvatarFallback>
-							</Avatar>
+							)}
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-medium">
 									{session?.user.name && session.user.name.length > 0
@@ -71,73 +74,66 @@ export function NavUser() {
 							</div>
 							<IconDotsVertical className="ml-auto size-4" />
 						</SidebarMenuButton>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-						side={isMobile ? "bottom" : "right"}
-						align="end"
-						sideOffset={4}
-					>
-						<DropdownMenuLabel className="p-0 font-normal">
-							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-								<Avatar className="h-8 w-8 rounded-lg">
-									<AvatarImage
-										src={
-											session?.user.image ??
-											`https://avatar.vercel.sh/${session?.user.name}`
-										}
-										alt={session?.user.name}
-									/>
-									<AvatarFallback className="rounded-lg">
-										{session?.user.name && session.user.name.length > 0
-											? session.user.name.charAt(0).toUpperCase()
-											: session?.user.email.charAt(0).toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
-								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate font-medium">
-										{session?.user.name && session.user.name.length > 0
-											? session.user.name
-											: session?.user.email.split("@")[0]}
-									</span>
-									<span className="text-muted-foreground truncate text-xs">
-										{session?.user.email}
-									</span>
-								</div>
-							</div>
-						</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						<DropdownMenuGroup>
-							<DropdownMenuItem asChild>
-								<Link href="/">
-									<HomeIcon />
-									Homepage
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuItem asChild>
-								<Link href="/admin">
-									<IconDashboard />
-									Dashboard
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuItem asChild>
-								<Link href="/admin/courses">
-									<Tv2 />
-									Courses
-								</Link>
-							</DropdownMenuItem>
-						</DropdownMenuGroup>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem
-							onClick={handleSignOut}
-							className="cursor-pointer"
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+							side={isMobile ? "bottom" : "right"}
+							align="end"
+							sideOffset={4}
 						>
-							<IconLogout />
-							Log out
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</SidebarMenuItem>
-		</SidebarMenu>
-	);
+							<DropdownMenuLabel className="p-0 font-normal">
+								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+									{user && (
+										<UserAvatar
+											user={user}
+											size={32}
+											className="rounded-lg"
+										/>
+									)}
+									<div className="grid flex-1 text-left text-sm leading-tight">
+										<span className="truncate font-medium">
+											{session?.user.name && session.user.name.length > 0
+												? session.user.name
+												: session?.user.email.split("@")[0]}
+										</span>
+										<span className="text-muted-foreground truncate text-xs">
+											{session?.user.email}
+										</span>
+									</div>
+								</div>
+							</DropdownMenuLabel>
+							<DropdownMenuSeparator />
+							<DropdownMenuGroup>
+								<DropdownMenuItem asChild>
+									<Link href="/">
+										<HomeIcon />
+										Homepage
+									</Link>
+								</DropdownMenuItem>
+								<DropdownMenuItem asChild>
+									<Link href="/admin">
+										<IconDashboard />
+										Dashboard
+									</Link>
+								</DropdownMenuItem>
+								<DropdownMenuItem asChild>
+									<Link href="/admin/courses">
+										<Tv2 />
+										Courses
+									</Link>
+								</DropdownMenuItem>
+							</DropdownMenuGroup>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onClick={handleSignOut}
+								className="cursor-pointer"
+							>
+								<IconLogout />
+								Log out
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		);
 }

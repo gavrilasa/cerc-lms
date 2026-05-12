@@ -18,7 +18,7 @@ import {
 	sortableKeyboardCoordinates,
 	arrayMove,
 } from "@dnd-kit/sortable";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { AdminCourseSingularType } from "@/app/data/admin/admin-get-course";
 import { cn } from "@/lib/utils";
@@ -56,68 +56,65 @@ interface SortableItemsProps {
 	};
 }
 
+// Define SortableItem at module scope to avoid re-creating it on every render
+function SortableItem({ children, id, className, data }: SortableItemsProps) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: id, data: data });
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+	};
+
+	return (
+		<div
+			ref={setNodeRef}
+			style={style}
+			{...attributes}
+			className={cn("touch-none", className, isDragging ? "z-10" : "")}
+		>
+			{children(listeners)}
+		</div>
+	);
+}
+
+interface ChapterItem {
+	id: string;
+	title: string;
+	order: number;
+	isOpen: boolean;
+	lessons: {
+		id: string;
+		title: string;
+		order: number;
+	}[];
+}
+
 export function CourseStructure({ data }: iAppProps) {
-	const initialItems =
-		data.chapters.map((chapter) => ({
-			id: chapter.id,
-			title: chapter.title,
-			order: chapter.position,
-			isOpen: true,
-			lessons: chapter.lessons.map((lesson) => ({
-				id: lesson.id,
-				title: lesson.title,
-				order: lesson.position,
-			})),
-		})) || [];
+	const [openChapters, setOpenChapters] = useState<Record<string, boolean>>({});
 
-	const [items, setItems] = useState(initialItems);
-
-	useEffect(() => {
-		setItems((prevItems) => {
-			const updatedItems =
-				data.chapters.map((chapter) => ({
-					id: chapter.id,
-					title: chapter.title,
-					order: chapter.position,
-					isOpen:
-						prevItems.find((item) => item.id === chapter.id)?.isOpen ?? true,
-					lessons: chapter.lessons.map((lesson) => ({
-						id: lesson.id,
-						title: lesson.title,
-						order: lesson.position,
-					})),
-				})) || [];
-
-			return updatedItems;
-		});
-	}, [data]);
-
-	function SortableItem({ children, id, className, data }: SortableItemsProps) {
-		const {
-			attributes,
-			listeners,
-			setNodeRef,
-			transform,
-			transition,
-			isDragging,
-		} = useSortable({ id: id, data: data });
-
-		const style = {
-			transform: CSS.Transform.toString(transform),
-			transition,
-		};
-
+	// Compute items during rendering from props + UI state
+	const items: ChapterItem[] = useMemo(() => {
 		return (
-			<div
-				ref={setNodeRef}
-				style={style}
-				{...attributes}
-				className={cn("touch-none", className, isDragging ? "z-10" : "")}
-			>
-				{children(listeners)}
-			</div>
+			data.chapters.map((chapter) => ({
+				id: chapter.id,
+				title: chapter.title,
+				order: chapter.position,
+				isOpen: openChapters[chapter.id] ?? true,
+				lessons: chapter.lessons.map((lesson) => ({
+					id: lesson.id,
+					title: lesson.title,
+					order: lesson.position,
+				})),
+			})) || []
 		);
-	}
+	}, [data.chapters, openChapters]);
 
 	function handleDragEnd(event: DragEndEvent) {
 		const { active, over } = event;
@@ -156,22 +153,12 @@ export function CourseStructure({ data }: iAppProps) {
 
 			const reordedLocalChapters = arrayMove(items, oldIndex, newIndex);
 
-			const updatedChapterForState = reordedLocalChapters.map(
-				(chapter, index) => ({
-					...chapter,
-					order: index + 1,
-				}),
-			);
-
-			const previousItems = [...items];
-			setItems(updatedChapterForState);
+			const chaptersToUpdate = reordedLocalChapters.map((chapter, index) => ({
+				id: chapter.id,
+				position: index + 1,
+			}));
 
 			if (courseId) {
-				const chaptersToUpdate = updatedChapterForState.map((chapter) => ({
-					id: chapter.id,
-					position: chapter.order,
-				}));
-
 				const reorderPromise = () =>
 					reorderChapters(courseId, chaptersToUpdate);
 
@@ -183,7 +170,6 @@ export function CourseStructure({ data }: iAppProps) {
 						throw new Error(result.message);
 					},
 					error: () => {
-						setItems(previousItems);
 						return "Failed to reorder Chapters";
 					},
 				});
@@ -231,28 +217,12 @@ export function CourseStructure({ data }: iAppProps) {
 				newLessonIndex,
 			);
 
-			const updatedLessonForState = reordedLessons.map((lesson, index) => ({
-				...lesson,
-				order: index + 1,
+			const lessonsToUpdate = reordedLessons.map((lesson, index) => ({
+				id: lesson.id,
+				position: index + 1,
 			}));
 
-			const newItems = [...items];
-
-			newItems[chapterIndex] = {
-				...chapterToUpdate,
-				lessons: updatedLessonForState,
-			};
-
-			const previousItems = [...items];
-
-			setItems(newItems);
-
 			if (courseId) {
-				const lessonsToUpdate = updatedLessonForState.map((lesson) => ({
-					id: lesson.id,
-					position: lesson.order,
-				}));
-
 				const reorderLessonsPromise = () =>
 					reorderLessons(chapterId, lessonsToUpdate, courseId);
 
@@ -263,7 +233,6 @@ export function CourseStructure({ data }: iAppProps) {
 						throw new Error(result.message);
 					},
 					error: () => {
-						setItems(previousItems);
 						return "Failed to Reorder Lesson";
 					},
 				});
@@ -316,26 +285,12 @@ export function CourseStructure({ data }: iAppProps) {
 				newLessonIndex,
 			);
 
-			const updatedLessonForState = reordedLessons.map((lesson, index) => ({
-				...lesson,
-				order: index + 1,
+			const lessonsToUpdate = reordedLessons.map((lesson, index) => ({
+				id: lesson.id,
+				position: index + 1,
 			}));
 
-			const newItems = [...items];
-			newItems[chapterIndex] = {
-				...chapterToUpdate,
-				lessons: updatedLessonForState,
-			};
-
-			const previousItems = [...items];
-			setItems(newItems);
-
 			if (courseId) {
-				const lessonsToUpdate = updatedLessonForState.map((lesson) => ({
-					id: lesson.id,
-					position: lesson.order,
-				}));
-
 				const reorderLessonsPromise = () =>
 					reorderLessons(chapterId, lessonsToUpdate, courseId);
 
@@ -346,7 +301,6 @@ export function CourseStructure({ data }: iAppProps) {
 						throw new Error(result.message);
 					},
 					error: () => {
-						setItems(previousItems);
 						return "Failed to Reorder Lesson";
 					},
 				});
@@ -357,13 +311,10 @@ export function CourseStructure({ data }: iAppProps) {
 	}
 
 	function toggleChapter(chapterId: string) {
-		setItems(
-			items.map((chapter) =>
-				chapter.id === chapterId
-					? { ...chapter, isOpen: !chapter.isOpen }
-					: chapter,
-			),
-		);
+		setOpenChapters((prev) => ({
+			...prev,
+			[chapterId]: !(prev[chapterId] ?? true),
+		}));
 	}
 
 	const sensors = useSensors(
@@ -438,7 +389,7 @@ export function CourseStructure({ data }: iAppProps) {
 																data={{ type: "lesson", chapterId: item.id }}
 															>
 																{(lessonListeners) => (
-																	<div className="flex items-center justify-between p-2 hover: bg-accent rounded-sm">
+																	<div className="flex items-center justify-between p-2 hover:bg-accent rounded-sm">
 																		<div className="flex items-center gap-2">
 																			<Button
 																				variant="ghost"
