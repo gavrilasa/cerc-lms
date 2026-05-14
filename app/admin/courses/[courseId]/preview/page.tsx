@@ -1,5 +1,6 @@
 import { adminGetCourse } from "@/app/data/admin/admin-get-course";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -8,13 +9,12 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { BookOpen, ArrowLeft, Eye, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { DivisionBadge } from "@/components/general/DivisionBadge";
 import { RichTextRenderer } from "@/components/general/RichTextRenderer";
 import { Division } from "@/lib/generated/prisma/enums";
-import { buttonVariants } from "@/components/ui/button";
 import {
 	Accordion,
 	AccordionContent,
@@ -43,6 +43,10 @@ export default async function AdminCoursePreviewPage({
 			acc + chapter.lessons.length,
 		0,
 	);
+
+	// Get first lesson for "Start Preview" button
+	const firstLesson = course.chapters[0]?.lessons[0];
+	const hasLessons = totalLessons > 0;
 
 	return (
 		<div className="container mx-auto py-10 px-4 md:px-8 max-w-6xl">
@@ -115,7 +119,7 @@ export default async function AdminCoursePreviewPage({
 																) => (
 																	<li
 																		key={lesson.id}
-																		className="flex items-center gap-2 text-sm text-muted-foreground"
+																		className="flex items-center gap-2 text-sm"
 																	>
 																		<span className="font-medium text-foreground">
 																			{index + 1}.
@@ -161,9 +165,25 @@ export default async function AdminCoursePreviewPage({
 							</div>
 							<Separator />
 
+							{/* Start Preview Button - only show if lessons exist */}
+							{hasLessons && firstLesson && (
+								<Button className="w-full gap-2" asChild>
+									<Link
+										href={`/admin/courses/${course.id}/preview/learn/${firstLesson.id}`}
+									>
+										<Eye className="size-4" />
+										Start Preview
+										<ArrowRight className="size-4" />
+									</Link>
+								</Button>
+							)}
+
 							<Link
 								href={`/admin/courses/${course.id}/edit`}
-								className={buttonVariants({ className: "w-full" })}
+								className={buttonVariants({
+									variant: hasLessons ? "outline" : "default",
+									className: "w-full",
+								})}
 							>
 								Edit Course
 							</Link>
