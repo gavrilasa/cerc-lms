@@ -57,15 +57,14 @@ export function AdminCourseCard({ data }: iAppProps) {
 								<Pencil className="size-4 mr-2" /> Edit Course
 							</Link>
 						</DropdownMenuItem>
-						<DropdownMenuItem asChild>
-							<Link
-								href={`/courses/${data.slug}`}
-								target="_blank"
-								className="cursor-pointer"
-							>
-								<Eye className="size-4 mr-2" /> Preview
-							</Link>
-						</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<Link
+							href={`/admin/courses/${data.id}/preview`}
+							className="cursor-pointer"
+						>
+							<Eye className="size-4 mr-2" /> Preview
+						</Link>
+					</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem asChild>
 							<Link
