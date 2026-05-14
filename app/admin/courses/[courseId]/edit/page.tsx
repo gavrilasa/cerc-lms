@@ -9,7 +9,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditCourseForm } from "./_components/EditCourseForm";
 import { CourseStructure } from "./_components/CourseStructure";
+import { ExportCourseButton } from "./_components/ExportCourseButton";
 import { requireSession } from "@/app/data/auth/require-session";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 
 type Params = Promise<{ courseId: string }>;
 
@@ -20,10 +26,28 @@ export default async function EditRoute({ params }: { params: Params }) {
 
 	return (
 		<div>
-			<h1 className="text-3xl font-bold mb-8">
-				Edit Course:{" "}
-				<span className="text-primary underline">{data.title}</span>
-			</h1>
+			<div className="flex items-center justify-between mb-8">
+				<div className="flex items-center gap-4">
+					<Link
+						href="/admin/courses"
+						className={buttonVariants({ variant: "outline", size: "icon" })}
+					>
+						<ArrowLeft className="size-4" />
+					</Link>
+					<h1 className="text-3xl font-bold">
+						Edit Course:{" "}
+						<span className="text-primary underline">{data.title}</span>
+					</h1>
+				</div>
+				{user.role === "ADMIN" && (
+					<Suspense fallback={<Skeleton className="h-10 w-32" />}>
+						<ExportCourseButton
+							courseId={courseId}
+							courseTitle={data.title}
+						/>
+					</Suspense>
+				)}
+			</div>
 
 			<Tabs defaultValue="basic-info" className="w-full">
 				<TabsList className="grid grid-cols-2 w-full">
