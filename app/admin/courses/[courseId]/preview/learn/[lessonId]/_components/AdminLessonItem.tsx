@@ -22,12 +22,12 @@ export function AdminLessonItem({
 		<Link
 			href={`/admin/courses/${courseId}/preview/learn/${lesson.id}`}
 			className={buttonVariants({
-				variant: isActive ? "default" : "ghost",
+				variant: "ghost",
 				className: cn(
 					"w-full p-2.5 h-auto justify-start transition-all",
 					isActive
 						? "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
-						: "text-muted-foreground hover:text-foreground"
+						: "text-muted-foreground hover:bg-muted hover:text-foreground"
 				),
 			})}
 		>

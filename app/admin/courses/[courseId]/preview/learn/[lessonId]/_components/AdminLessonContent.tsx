@@ -11,6 +11,10 @@ import {
 	FontSize,
 	FontFamily,
 } from "@tiptap/extension-text-style";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import { Button } from "@/components/ui/button";
 import { FileQuestion, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -96,6 +100,10 @@ export function AdminLessonContent({
 					class: "w-full aspect-video rounded-lg shadow-sm border my-4",
 				},
 			}),
+			Table.configure({ resizable: true }),
+			TableRow,
+			TableCell,
+			TableHeader,
 		],
 		editorProps: {
 			attributes: {
