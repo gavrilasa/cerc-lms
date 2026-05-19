@@ -191,7 +191,7 @@ export function useLessonEditorConfig(field: { value?: string; onChange: (value:
 
 export function LessonRichTextEditor({ editor }: { editor: Editor | null }) {
 	return (
-		<div className="w-full border border-input rounded-lg dark:bg-input/30 bg-background">
+		<div className="w-full border border-input rounded-b-lg dark:bg-input/30 bg-background">
 			<EditorContent editor={editor} />
 		</div>
 	);
