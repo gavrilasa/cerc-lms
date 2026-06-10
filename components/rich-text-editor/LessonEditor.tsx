@@ -33,6 +33,13 @@ export const EDITOR_EXTENSIONS = [
 	Image.configure({
 		inline: true,
 		allowBase64: false,
+		resize: {
+			enabled: true,
+			directions: ["bottom-left", "bottom-right", "top-left", "top-right"],
+			minWidth: 100,
+			minHeight: 100,
+			alwaysPreserveAspectRatio: true,
+		},
 		HTMLAttributes: {
 			class: "rounded-lg border shadow-sm max-w-full h-auto my-4",
 		},
