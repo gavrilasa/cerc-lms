@@ -218,3 +218,80 @@
 .dark::view-transition-new(root) {
 	z-index: 1;
 }
+
+/* Tiptap resizable image — crop-style selection UI */
+
+/* Hide handles by default */
+[data-resize-handle] {
+	display: none;
+}
+
+/* L-shaped corner brackets — shown only when image is selected */
+.ProseMirror-selectednode [data-resize-handle] {
+	display: block;
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	z-index: 10;
+}
+
+/* ┌ top-left */
+[data-resize-handle="top-left"] {
+	top: -1px;
+	left: -1px;
+	border-top: 2px solid var(--primary);
+	border-left: 2px solid var(--primary);
+	cursor: nw-resize;
+}
+
+/* ┐ top-right */
+[data-resize-handle="top-right"] {
+	top: -1px;
+	right: -1px;
+	border-top: 2px solid var(--primary);
+	border-right: 2px solid var(--primary);
+	cursor: ne-resize;
+}
+
+/* └ bottom-left */
+[data-resize-handle="bottom-left"] {
+	bottom: -1px;
+	left: -1px;
+	border-bottom: 2px solid var(--primary);
+	border-left: 2px solid var(--primary);
+	cursor: sw-resize;
+}
+
+/* ┘ bottom-right */
+[data-resize-handle="bottom-right"] {
+	bottom: -1px;
+	right: -1px;
+	border-bottom: 2px solid var(--primary);
+	border-right: 2px solid var(--primary);
+	cursor: se-resize;
+}
+
+/* Rule-of-thirds grid overlay — hidden by default */
+[data-resize-wrapper]::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	pointer-events: none;
+	background-image:
+		linear-gradient(to right, rgba(0, 0, 0, 0.4) 1px, transparent 1px),
+		linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 1px, transparent 1px);
+	background-size: calc(100% / 3) calc(100% / 3);
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+/* Show grid when image is selected */
+.ProseMirror-selectednode [data-resize-wrapper]::before {
+	opacity: 1;
+}
+
+/* Keep grid visible while actively resizing */
+[data-resize-state="true"] [data-resize-wrapper]::before {
+	opacity: 1;
+}
