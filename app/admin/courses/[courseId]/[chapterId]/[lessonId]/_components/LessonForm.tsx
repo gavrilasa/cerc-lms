@@ -134,12 +134,12 @@ export function LessonForm({
 				className={cn(
 					"transition-all duration-300 ease-in-out",
 					isZenMode
-						? "fixed inset-0 z-9999 bg-background overflow-y-auto p-4 md:p-8" // Fullscreen Style
+						? "fixed inset-0 z-9999 bg-card overflow-y-auto p-4 md:p-8" // Fullscreen Style with card background
 						: "w-full", // Default Style
 				)}
 			>
 				<Card
-					className={cn(isZenMode && "border-0 shadow-none h-full", "gap-4")}
+					className={cn("flex flex-col", isZenMode && "h-full border shadow-lg")}
 				>
 					{!isZenMode && (
 						<CardHeader>
@@ -151,43 +151,43 @@ export function LessonForm({
 					)}
 
 					<CardContent
-						className={cn(isZenMode && "p-0 h-full max-w-5xl mx-auto")}
+						className={cn(
+							"flex flex-col",
+							isZenMode
+								? "p-0 h-full max-w-5xl mx-auto"
+								: "h-[calc(100vh-280px)]"
+						)}
 					>
 						<Form {...form}>
 							<form
 								onSubmit={form.handleSubmit(onSubmit)}
-								className="space-y-6"
+								className="flex flex-col flex-1 overflow-hidden"
 							>
 								{/* Top Toolbar (Title, Actions, Editor Toolbar) - STICKY */}
 								<div
 									className={cn(
-										"sticky top-0 z-50 bg-background/95 backdrop-blur pt-2",
-										isZenMode ? "px-0" : "px-4 -mx-4",
+										"sticky top-0 z-50 shrink-0",
+										isZenMode
+											? "bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/60" // Zen mode: subtle backdrop blur
+											: "bg-card/95 backdrop-blur border-b px-4 -mx-4 pt-4" // Default: with border and padding
 									)}
 								>
 									{/* Row 1: Title and Actions */}
-									<div
-										className={cn(
-											"flex flex-col md:flex-row gap-4 items-center justify-between mb-2",
-											isZenMode &&
-												"border border-input rounded-lg py-2 px-4 bg-card",
-										)}
-									>
+									<div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+										{/* Title Input */}
 										<FormField
 											control={form.control}
 											name="title"
 											render={({ field }) => (
-												<FormItem className="flex-1 w-full md:max-w-xl">
-													{!isZenMode && <FormLabel>Title</FormLabel>}
+												<FormItem className="flex-1 w-full md:max-w-xl mb-0">
+													{!isZenMode && <FormLabel className="sr-only">Title</FormLabel>}
 													<FormControl>
 														<Input
 															{...field}
 															placeholder="Lesson Title"
 															className={cn(
-																"font-semibold text-lg",
-																isZenMode
-																	? "text-xl shadow-none border-transparent focus-visible:ring-0 bg-transparent"
-																	: "",
+																"font-semibold text-lg border-0 focus-visible:ring-0 bg-transparent px-4 shadow-none",
+																isZenMode ? "text-xl" : "text-lg"
 															)}
 														/>
 													</FormControl>
@@ -226,7 +226,7 @@ export function LessonForm({
 
 									{/* Row 2: Editor Toolbar - Now included in sticky header! */}
 									{editor && (
-										<div className="mt-2">
+										<div className="mt-4">
 											<LessonMenubar
 												editor={editor}
 												uploadImage={uploadImage}
@@ -236,23 +236,25 @@ export function LessonForm({
 									)}
 								</div>
 
-							{/* Rich Text Editor - Full Width (NO TOOLBAR) */}
-							<FormField
-								control={form.control}
-								name="description"
-								render={() => (
-									<FormItem className="min-h-[500px]">
-										{!isZenMode && <FormLabel>Content</FormLabel>}
-										<FormControl>
-											{/* Wrapper Editor agar fill screen saat Zen Mode */}
-											<div className={cn(isZenMode && "min-h-screen pb-20")}>
-												<LessonRichTextEditor editor={editor} />
-											</div>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-								/>
+								{/* Scrollable Content Area */}
+								<div className="flex-1 overflow-y-auto">
+									{/* Rich Text Editor - Full Width (NO TOOLBAR) */}
+									<FormField
+										control={form.control}
+										name="description"
+										render={() => (
+											<FormItem className="h-full flex flex-col">
+												{!isZenMode && <FormLabel className="sr-only">Content</FormLabel>}
+												<FormControl>
+													<div className={cn("flex-1", isZenMode && "min-h-[calc(100vh-300px)]")}>
+														<LessonRichTextEditor editor={editor} />
+													</div>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+									)}
+									/>
+								</div>
 							</form>
 						</Form>
 					</CardContent>
